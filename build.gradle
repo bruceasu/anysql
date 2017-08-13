@@ -1,0 +1,157 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
+apply plugin: 'signing'
+
+group = 'anysql'
+version = '1.0.1'
+
+ext.isReleaseVersion = !version.endsWith("SNAPSHOT")
+
+description = "anysql"
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+repositories {
+    maven {
+        url "file:///d:/.m2/repository"
+    }
+    maven {
+        url "http://maven.aliyun.com/nexus/content/groups/public/"
+    }
+    jcenter()
+    mavenLocal()
+    mavenCentral()
+    //flatDir {
+    //    dirs 'lib'
+    //}
+}
+
+dependencies {
+    //testCompile group: 'junit', name: 'junit', version:'4.8.2'
+    //testCompile group: 'mysql', name: 'mysql-connector-java', version:'5.1.40'
+    //compile(group: 'log4j', name: 'log4j', version:'1.2.17')
+    //某个文件夹下面全部依赖
+    compile fileTree(dir: 'lib', include: '*.jar')
+}
+
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+    options.compilerArgs = ["-parameters"]
+}
+
+javadoc.options.encoding = "UTF-8"
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+        tasks.withType(Javadoc) {
+            options.addStringOption('Xdoclint:none', '-quiet')
+        }
+    }
+}
+task copyJars(type: Copy) {
+    from configurations.runtime
+    into 'lib' // 目标位置
+}
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+
+artifacts {
+    archives jar
+    archives sourcesJar
+    archives javadocJar
+}
+
+def Properties properties = new Properties()
+properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
+ext."signing.keyId"=properties["signing.keyId"]
+ext."signing.password"=properties["signing.password"]
+ext."signing.secretKeyRingFile"=properties["signing.secretKeyRingFile"]
+ext."ossrhUsername"=properties["ossrhUsername"]
+ext."ossrhPassword"=properties["ossrhPassword"]
+
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+
+            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                authentication(userName: ossrhUsername, password: ossrhPassword)
+            }
+            pom.project {
+                name 'anysql'
+                packaging 'jar'
+                description 'anysql'
+                url ''
+
+                scm {
+                      connection 'scm:git:git://github.com/xxx.git'
+                      developerConnection 'scm:git:git://github.com/xxx.git'
+                      url 'git://github.com/xxx.git'
+                }
+
+                licenses {
+                      license {
+                        name 'The Apache License, Version 2.0'
+                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                      }
+                }
+
+                developers {
+                      developer {
+                        id 'suk'
+                        name 'Suk Honzeon'
+                        email 'sukhonzeon@gmail.com'
+                      }
+                      developer {
+                        id 'anysql'
+                        name 'Lou Fangxin'
+                        email 'dcba@itpub.net'
+                        url 'http://www.anysql.net'
+                      }
+                }
+            }
+        }
+    }
+}
+
+
+//signing {
+//    required { isReleaseVersion && gradle.taskGraph.hasTask("uploadArchives") }
+//    sign configurations.archives
+//}
+
+
+def installer = install.repositories.mavenInstaller
+def deployer = uploadArchives.repositories.mavenDeployer
+
+//[installer, deployer]*.pom*.whenConfigured {pom ->
+//    pom.dependencies.find {dep -> dep.groupId != '' }.provided = true
+//}
+
+deployer.pom.whenConfigured {pom ->
+    pom.dependencies.find {dep -> dep.scope == "compile" || dep.version == "2.5" }.each {dep -> dep.scope = "provided"}
+    pom.dependencies.find {dep -> dep.scope == "compile"}.each{dep-> println dep.scope }
+    pom.dependencies.find {dep -> dep.scope == "compile"}.each {dep -> dep.scope = "provided"}
+    pom.dependencies.find {dep -> dep.scope == "compile"}.each{dep-> println dep.scope }
+}
+installer.pom.whenConfigured {pom ->
+    pom.dependencies.find {dep -> dep.scope != "test" }.each {dep -> dep.scope = "provided"}
+    pom.dependencies.each{dep-> println dep.scope }
+}

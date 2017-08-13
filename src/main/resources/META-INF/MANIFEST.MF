@@ -1,0 +1,9 @@
+Manifest-Version: 1.0
+Created-By: Lou Fangxin (http://www.anysql.net)
+Main-Class: com.asql.tools.ASQL
+Contact-To: mail(dcba@itpub.net),qq(37223884)
+Mantainer: Suk Honzeon
+Class-Path: oracle.jar sybase.jar db2.jar mysql.jar sqlserver.jar info
+ rmix.jar datadirect.jar pgsql.jar sapdb.jar teradata.jar as400.jar em
+ ail.jar swt.jar swt-gtk.jar swt-pi.jar swt-mozilla.jar
+
