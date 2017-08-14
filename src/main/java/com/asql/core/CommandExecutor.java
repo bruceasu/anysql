@@ -135,7 +135,7 @@ public abstract class CommandExecutor extends SQLExecutor {
                     }
                 } else {
                     for (j = 1; paramDBRowCache.findColumn("NULL" + j) != 0; j++) ;
-                    paramDBRowCache.addColumn("NULL" + j, ((ResultSetMetaData) resultSetMetaData).getColumnType(i));
+                    paramDBRowCache.addColumn("NULL" + j,  resultSetMetaData.getColumnType(i));
                 }
         }
         if (paramDBRowCache.getColumnCount() == 0)

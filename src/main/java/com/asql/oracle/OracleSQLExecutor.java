@@ -215,29 +215,38 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
         char[] arrayOfChar1 = new char[4096];
         byte[] arrayOfByte2 = new byte[65536];
         char[] arrayOfChar2 = new char[65536];
-        Object localObject2;
         if (paramDBRowCache.getColumnCount() == 0) {
-            localObject2 = paramResultSet.getMetaData();
-            for (i = 1; i <= ((ResultSetMetaData) localObject2).getColumnCount(); i++)
-                if (((ResultSetMetaData) localObject2).getColumnName(i) != null) {
-                    if (paramDBRowCache.findColumn(((ResultSetMetaData) localObject2).getColumnName(i)) == 0) {
-                        paramDBRowCache.addColumn(((ResultSetMetaData) localObject2).getColumnName(i), ((ResultSetMetaData) localObject2).getColumnType(i));
+            ResultSetMetaData metaData = paramResultSet.getMetaData();
+            for (i = 1; i <=  metaData.getColumnCount(); i++) {
+                String columnName = metaData.getColumnName(i);
+                if ( columnName != null) {
+                    if (paramDBRowCache.findColumn(columnName) == 0) {
+                        paramDBRowCache.addColumn(columnName, metaData.getColumnType(i));
                     } else {
-                        for (j = 1; paramDBRowCache.findColumn(((ResultSetMetaData) localObject2).getColumnName(i) + "_" + j) != 0; j++)
+                        for (j = 1; paramDBRowCache.findColumn(columnName + "_" + j) != 0; j++)
                             ;
-                        paramDBRowCache.addColumn(((ResultSetMetaData) localObject2).getColumnName(i) + "_" + j, ((ResultSetMetaData) localObject2).getColumnType(i));
+                        paramDBRowCache.addColumn(columnName + "_" + j,  metaData.getColumnType(i));
                     }
                 } else {
                     for (j = 1; paramDBRowCache.findColumn("NULL" + j) != 0; j++) ;
-                    paramDBRowCache.addColumn("NULL" + j, ((ResultSetMetaData) localObject2).getColumnType(i));
+                    paramDBRowCache.addColumn("NULL" + j, metaData.getColumnType(i));
                 }
+            }
         }
         if (paramDBRowCache.getColumnCount() == 0)
             return 0;
         Object[] arrayOfObject;
+        Object localObject2;
         for (i = paramDBRowCache.getRowCount(); (i < paramInt) && (paramResultSet.next()); i = paramDBRowCache.appendRow(arrayOfObject)) {
             arrayOfObject = new Object[paramDBRowCache.getColumnCount()];
+            for (int kk = 1; kk <= paramDBRowCache.getColumnCount();kk++) {
+                System.out.println("paramDBRowCache.getColumnType("+kk+") = " + paramDBRowCache.getColumnType(kk));
+            }
             for (j = 1; j <= paramDBRowCache.getColumnCount(); j++) {
+//                System.out.println("j = " + j);
+//                System.out.println("paramResultSet = " + paramResultSet);
+//                System.out.println("paramDBRowCache.getColumnType(j) = " + paramDBRowCache.getColumnType(j));
+//                System.out.println("paramResultSet.getObject(j) = " + paramResultSet.getObject(j));
                 Object localObject1 = null;
                 int m;
                 Object localObject3;
@@ -324,10 +333,14 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
                         } catch (IOException localIOException6) {
                         }
                     case 91:
-                        localObject1 = paramResultSet.getTimestamp(j);
+                        try {
+                            localObject1 = paramResultSet.getTimestamp(j);
+                        } catch (Throwable e) {}
                         break;
                     case 92:
-                        localObject1 = paramResultSet.getTime(j);
+                        try {
+                            localObject1 = paramResultSet.getTime(j);
+                        } catch (Throwable e) {}
                         break;
                     case -102:
                     case -101:

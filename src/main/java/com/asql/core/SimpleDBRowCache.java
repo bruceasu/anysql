@@ -1,7 +1,5 @@
 package com.asql.core;
 
-import static oracle.net.aso.C03.i;
-
 import com.asql.core.util.TextUtils;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -9,7 +7,11 @@ import java.io.PrintStream;
 import java.io.Writer;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.TreeSet;
+import java.util.Vector;
 
 public final class SimpleDBRowCache
         implements DBRowCache, Comparator<Object> {
@@ -29,12 +31,12 @@ public final class SimpleDBRowCache
     public final int findColumn(String paramString) {
         if (paramString == null)
             return 0;
-        for (int i = 0;
+        int i = 0;
+        for (;
              (i < this.column_count)
                 && ((this.column_name[i] == null) || (!this.column_name[i].equalsIgnoreCase(paramString)))
                 && ((this.column_label[i] == null) || (!this.column_label[i].equalsIgnoreCase(paramString)));
-             i++)
-            ;
+             i++) {}
         return i == this.column_count ? 0 : i + 1;
     }
 
@@ -1418,5 +1420,21 @@ public final class SimpleDBRowCache
         return i;
     }
 
-
+    @Override
+    public String toString() {
+        return "SimpleDBRowCache{" +
+                "column_count=" + column_count +
+                ", column_label=" + Arrays.toString(column_label) +
+                ", column_name=" + Arrays.toString(column_name) +
+                ", column_type=" + Arrays.toString(column_type) +
+                ", column_size=" + Arrays.toString(column_size) +
+                ", cache_data=" + cache_data +
+                ", sdftDate=" + sdftDate +
+                ", sdftTime=" + sdftTime +
+                ", sdftTimestamp=" + sdftTimestamp +
+                ", sdftTimestampTz=" + sdftTimestampTz +
+                ", sort_column=" + sort_column +
+                ", sort_asc=" + sort_asc +
+                '}';
+    }
 }
