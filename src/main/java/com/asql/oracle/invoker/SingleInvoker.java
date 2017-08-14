@@ -812,7 +812,7 @@ public class SingleInvoker implements ModuleInvoker {
                 executor.database = DBConnection.getConnection("DDORA", str2, (String) localObject2, str1, localProperties);
             executor.database.setAutoCommit(false);
             executor.autoCommit = executor.database.getAutoCommit();
-            out.println("executor.database connected.");
+            out.println("database connected.");
         } catch (SQLException localSQLException2) {
             out.print(localSQLException2);
         }
