@@ -161,12 +161,13 @@ public final class SimpleDBRowCache
                 System.arraycopy(arrayOfObject2, 0, arrayOfObject1, 0, arrayOfObject2.length);
                 this.cache_data.setElementAt(arrayOfObject1, i);
             }
+        } else {
+            this.column_label[this.column_count] = paramString.trim();
+            this.column_name[this.column_count] = paramString.trim();
+            this.column_type[this.column_count] = paramInt;
+            this.column_size[this.column_count] = this.column_name[this.column_count].length();
+            this.column_count += 1;
         }
-        this.column_label[this.column_count] = paramString.trim();
-        this.column_name[this.column_count] = paramString.trim();
-        this.column_type[this.column_count] = paramInt;
-        this.column_size[this.column_count] = this.column_name[this.column_count].length();
-        this.column_count += 1;
     }
 
     public int getRowCount() {

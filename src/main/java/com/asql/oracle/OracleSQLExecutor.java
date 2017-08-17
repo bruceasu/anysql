@@ -215,34 +215,22 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
         char[] arrayOfChar1 = new char[4096];
         byte[] arrayOfByte2 = new byte[65536];
         char[] arrayOfChar2 = new char[65536];
-        if (paramDBRowCache.getColumnCount() == 0) {
-            ResultSetMetaData metaData = paramResultSet.getMetaData();
-            for (i = 1; i <=  metaData.getColumnCount(); i++) {
-                String columnName = metaData.getColumnName(i);
-                if ( columnName != null) {
-                    if (paramDBRowCache.findColumn(columnName) == 0) {
-                        paramDBRowCache.addColumn(columnName, metaData.getColumnType(i));
-                    } else {
-                        for (j = 1; paramDBRowCache.findColumn(columnName + "_" + j) != 0; j++)
-                            ;
-                        paramDBRowCache.addColumn(columnName + "_" + j,  metaData.getColumnType(i));
-                    }
-                } else {
-                    for (j = 1; paramDBRowCache.findColumn("NULL" + j) != 0; j++) ;
-                    paramDBRowCache.addColumn("NULL" + j, metaData.getColumnType(i));
-                }
-            }
+        int columnCount = paramDBRowCache.getColumnCount();
+        if (columnCount == 0) {
+            setColumnInfoes(paramResultSet, paramDBRowCache);
         }
-        if (paramDBRowCache.getColumnCount() == 0)
+
+        columnCount = paramDBRowCache.getColumnCount();
+        if (columnCount == 0)
             return 0;
         Object[] arrayOfObject;
         Object localObject2;
         for (i = paramDBRowCache.getRowCount(); (i < paramInt) && (paramResultSet.next()); i = paramDBRowCache.appendRow(arrayOfObject)) {
-            arrayOfObject = new Object[paramDBRowCache.getColumnCount()];
-            for (int kk = 1; kk <= paramDBRowCache.getColumnCount();kk++) {
-                System.out.println("paramDBRowCache.getColumnType("+kk+") = " + paramDBRowCache.getColumnType(kk));
-            }
-            for (j = 1; j <= paramDBRowCache.getColumnCount(); j++) {
+            arrayOfObject = new Object[columnCount];
+//            for (int kk = 1; kk <= paramDBRowCache.getColumnCount();kk++) {
+//                System.out.println("paramDBRowCache.getColumnType("+kk+") = " + paramDBRowCache.getColumnType(kk));
+//            }
+            for (j = 1; j <= columnCount; j++) {
 //                System.out.println("j = " + j);
 //                System.out.println("paramResultSet = " + paramResultSet);
 //                System.out.println("paramDBRowCache.getColumnType(j) = " + paramDBRowCache.getColumnType(j));
@@ -380,6 +368,27 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
             }
         }
         return i;
+    }
+
+    private void setColumnInfoes(ResultSet paramResultSet, DBRowCache paramDBRowCache) throws SQLException {
+        int i;
+        int j;
+        ResultSetMetaData metaData = paramResultSet.getMetaData();
+        for (i = 1; i <=  metaData.getColumnCount(); i++) {
+            String columnName = metaData.getColumnName(i);
+            if ( columnName != null) {
+                if (paramDBRowCache.findColumn(columnName) == 0) {
+                    paramDBRowCache.addColumn(columnName, metaData.getColumnType(i));
+                } else {
+                    for (j = 1; paramDBRowCache.findColumn(columnName + "_" + j) != 0; j++)
+                        ;
+                    paramDBRowCache.addColumn(columnName + "_" + j,  metaData.getColumnType(i));
+                }
+            } else {
+                for (j = 1; paramDBRowCache.findColumn("NULL" + j) != 0; j++) ;
+                paramDBRowCache.addColumn("NULL" + j, metaData.getColumnType(i));
+            }
+        }
     }
 
     public void loadTNSNames(String path) {

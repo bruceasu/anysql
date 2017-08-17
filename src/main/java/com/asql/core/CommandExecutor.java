@@ -124,7 +124,8 @@ public abstract class CommandExecutor extends SQLExecutor {
         ResultSetMetaData resultSetMetaData;
         if (paramDBRowCache.getColumnCount() == 0) {
             resultSetMetaData = paramResultSet.getMetaData();
-            for (i = 1; i <= resultSetMetaData.getColumnCount(); i++)
+            int columnCount = resultSetMetaData.getColumnCount();
+            for (i = 1; i <= columnCount; i++)
                 if (resultSetMetaData.getColumnName(i) != null) {
                     if (paramDBRowCache.findColumn(resultSetMetaData.getColumnName(i)) == 0) {
                         paramDBRowCache.addColumn(resultSetMetaData.getColumnName(i), resultSetMetaData.getColumnType(i));

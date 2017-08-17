@@ -134,7 +134,7 @@ public class OutputCommandLog implements CommandLog {
     public void print(ResultSet paramResultSet)
             throws SQLException {
         SimpleDBRowCache rowCache = new SimpleDBRowCache();
-        int i = this.pageSize > 0 ? 400 / this.pageSize * this.pageSize : 400;
+        int i = this.pageSize > 0 ? (400 / this.pageSize * this.pageSize) : 400;
         int j = 0;
         int k = 0;
         int m = 0;
