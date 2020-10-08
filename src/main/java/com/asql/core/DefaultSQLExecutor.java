@@ -8,6 +8,7 @@ import com.asql.core.util.DateOperator;
 import com.asql.core.util.TextUtils;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.function.Function;
 
 public class DefaultSQLExecutor extends CommandExecutor {
     public CMDType cmdType = null;
@@ -32,6 +33,7 @@ public class DefaultSQLExecutor extends CommandExecutor {
         this.out = paramCommandLog;
     }
 
+    @Override
     public final DBRowCache executeQuery(String paramString, VariableTable paramVariableTable)
             throws SQLException {
         if (!isConnected())
@@ -39,44 +41,43 @@ public class DefaultSQLExecutor extends CommandExecutor {
         return executeQuery(this.database, paramString, paramVariableTable);
     }
 
+    @Override
     public final DBRowCache executeQuery(String paramString,
                                          VariableTable paramVariableTable,
                                          int paramInt)
             throws SQLException {
-        if (!isConnected())
+        if (!isConnected()) {
             return null;
+        }
         return executeQuery(this.database, paramString, paramVariableTable, paramInt);
     }
 
+    @Override
     public final boolean isConnected() {
-        if (this.database == null)
+        if (this.database == null) {
             return false;
+        }
         try {
             return !this.database.isClosed();
-        } catch (SQLException localSQLException) {
+        } catch (SQLException ignored) {
         }
         return false;
     }
 
-    public final void procDisconnect(String paramString) {
+    public boolean checkNotConnected() {
         if (!isConnected()) {
-            this.out.println("Database not connected.");
-            return;
+            out.println("Database not connected.");
+            return true;
         }
-        try {
-            this.database.rollback();
-        } catch (SQLException localSQLException1) {
-            this.out.print(localSQLException1);
-        }
-        try {
-            this.database.close();
-            this.database = null;
-            this.out.println("Disconnect from database!");
-        } catch (SQLException localSQLException2) {
-            this.out.print(localSQLException2);
-        }
+        return false;
     }
 
+
+    public final void procDisconnect(String param) {
+        disconnect();
+    }
+
+    @Override
     public final void disconnect() {
         if (!isConnected()) {
             this.out.println();
@@ -84,65 +85,80 @@ public class DefaultSQLExecutor extends CommandExecutor {
             this.out.println();
             return;
         }
+
         try {
             this.database.rollback();
-        } catch (SQLException localSQLException1) {
-            this.out.print(localSQLException1);
+        } catch (SQLException e) {
+            this.out.print(e);
         }
+
         try {
             this.database.close();
             this.database = null;
             this.out.println();
             this.out.println("Disconnect from database!");
             this.out.println();
-        } catch (SQLException localSQLException2) {
+        } catch (SQLException e) {
             this.out.println();
-            this.out.print(localSQLException2);
+            this.out.print(e);
             this.out.println();
         }
     }
 
-    public final int getSingleID(String paramString) {
-        String[] arrayOfString = TextUtils.toStringArray(TextUtils.getWords(paramString));
-        return commandAt(this.cmdType.getASQLSingle(), arrayOfString);
+    public final int getSingleID(String cmd) {
+        String[] arr = TextUtils.toStringArray(TextUtils.getWords(cmd));
+        return commandAt(this.cmdType.getASQLSingle(), arr);
     }
 
-    public final int getDBCommandID(String paramString) {
-        String[] arrayOfString = TextUtils.toStringArray(TextUtils.getWords(paramString));
-        return commandAt(this.cmdType.getDBCommand(), arrayOfString);
+    public final int getDBCommandID(String cmd) {
+        String[] arr = TextUtils.toStringArray(TextUtils.getWords(cmd));
+        return commandAt(this.cmdType.getDBCommand(), arr);
     }
 
-    public final int getMultipleID(String paramString) {
-        String[] arrayOfString = TextUtils.toStringArray(TextUtils.getWords(paramString));
-        return commandAt(this.cmdType.getASQLMultiple(), arrayOfString);
+    public final int getMultipleID(String cmd) {
+        String[] arr = TextUtils.toStringArray(TextUtils.getWords(cmd));
+        return commandAt(this.cmdType.getASQLMultiple(), arr);
     }
 
-    public final String skipWord(String paramString, int paramInt) {
-        char[] arrayOfChar = paramString.toCharArray();
+    public final String skipWord(String param, int num) {
+        char[] arr = param.toCharArray();
         int i = 0;
         int j = 0;
         int k = 0;
-        while ((j < paramInt) && (i < arrayOfChar.length)) {
-            while ((i < arrayOfChar.length) && isWhitespace(arrayOfChar[i]))
+        while ((j < num) && (i < arr.length)) {
+            while ((i < arr.length) && isWhitespace(arr[i])) {
                 i++;
-            while ((i < arrayOfChar.length) && isNotWhitespace(arrayOfChar[i]))
+            }
+            while ((i < arr.length) && isNotWhitespace(arr[i])) {
                 i++;
+            }
             j++;
         }
         i++;
-        if (i < arrayOfChar.length)
-            return String.valueOf(arrayOfChar, i, arrayOfChar.length - i);
+        if (i < arr.length) {
+            return String.valueOf(arr, i, arr.length - i);
+        }
         return "";
     }
 
-    private boolean isNotWhitespace(char c) {
-        return !isWhitespace(c);
+
+    public void printCost(long end, long start) {
+        if (timing) {
+            this.out.println("Execute time: " + DBOperation.getElapsed(end - start));
+        }
     }
 
-    private boolean isWhitespace(char c) {
-        return (c == ' ') || (c == '\t') || (c == '\r') || (c == '\n');
+    public <R> R time(Command cmd, Function<String, R> function) {
+        this.out.println();
+        long l1 = System.currentTimeMillis();
+        R r = function.apply(cmd.COMMAND);
+        long l2 = System.currentTimeMillis();
+        printCost(l2, l1);
+        this.out.println();
+        return r;
     }
 
+    @Override
     public boolean execute(Command paramCommand) {
         this.out.println();
         this.out.println("Command executed!");
@@ -150,6 +166,7 @@ public class DefaultSQLExecutor extends CommandExecutor {
         return true;
     }
 
+    @Override
     public void showVersion() {
         this.out.println();
         this.out.println(" Default Command Executor, version 1.0 -- " + DateOperator.getDay("yyyy-MM-dd HH:mm:ss"));
@@ -158,31 +175,47 @@ public class DefaultSQLExecutor extends CommandExecutor {
         this.out.println();
     }
 
+    @Override
     public final CommandLog getCommandLog() {
         return this.out;
     }
 
+    @Override
     public final void setCommandLog(CommandLog paramCommandLog) {
         this.out = paramCommandLog;
     }
 
+    @Override
     public final CommandReader getCommandReader() {
         return this.in;
     }
 
+    @Override
     public final void setCommandReader(CommandReader paramCommandReader) {
         this.in = paramCommandReader;
     }
 
+    @Override
     public final CMDType getCommandType() {
         return this.cmdType;
     }
 
+    @Override
     public void doServerMessage()
             throws SQLException {
     }
 
+    @Override
     public String getLastCommand() {
         return null;
+    }
+
+
+    private boolean isNotWhitespace(char c) {
+        return !isWhitespace(c);
+    }
+
+    private boolean isWhitespace(char c) {
+        return (c == ' ') || (c == '\t') || (c == '\r') || (c == '\n');
     }
 }

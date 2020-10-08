@@ -31,7 +31,9 @@ import com.asql.core.log.CommandLog;
 import com.asql.oracle.OracleSQLExecutor;
 
 /**
- * Created by suk on 2017/8/13.
+ *
+ * @author suk
+ * @date 2017/8/13
  */
 public class ScriptInvoker implements ModuleInvoker {
     OracleSQLExecutor executor;
@@ -42,19 +44,17 @@ public class ScriptInvoker implements ModuleInvoker {
         out = executor.getCommandLog();
         cmdType = executor.getCommandType();
     }
+
+    @Override
     public boolean invoke(Command cmd) {
-        DBRowCache rowCacheOfSessionWait;
-        DBRowCache rowCacheOfSessionStats;
-        long l1;
-        long l2;
         executor.getObjectFromCommand(cmd.COMMAND.substring(0, Math.min(100, cmd.COMMAND.length() - 1)));
         out.println();
-        rowCacheOfSessionWait = executor.getDbRowCacheOfSessionWait();
-        rowCacheOfSessionStats = executor.getDbRowCacheOfSessionStats();
-        l1 = System.currentTimeMillis();
+        DBRowCache rowCacheOfSessionWait = executor.getDbRowCacheOfSessionWait();
+        DBRowCache rowCacheOfSessionStats = executor.getDbRowCacheOfSessionStats();
+        long start = System.currentTimeMillis();
         executor.executeScript(executor.database, cmd, executor.sysVariable, out);
-        l2 = System.currentTimeMillis();
-        executor.printCost(l2, l1);
+        long end = System.currentTimeMillis();
+        executor.printCost(end, start);
         executor.printSessionStats(rowCacheOfSessionStats);
         executor.printSessionWait(rowCacheOfSessionWait);
         out.println();

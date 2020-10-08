@@ -63,6 +63,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
         setShowComplete(true);
     }
 
+    @Override
     public final boolean execute(Command paramCommand) {
         long l1, l2 = 0L;
         if (paramCommand == null) {
@@ -1723,6 +1724,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
         }
     }
 
+    @Override
     public void showVersion() {
         this.out.println();
         this.out.println(" AnySQL for SQL Server/Sybase, version 2.0.0 -- " + DateOperator.getDay("yyyy-MM-dd HH:mm:ss"));
@@ -1894,12 +1896,12 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
         return l1;
     }
 
-    public int fetch(ResultSet paramResultSet, DBRowCache paramDBRowCache)
+    public int fetch(ResultSet rs, DBRowCache rowCache)
             throws SQLException {
-        return fetch(paramResultSet, paramDBRowCache, 100);
+        return fetch(rs, rowCache, 100);
     }
 
-    public int fetch(ResultSet paramResultSet, DBRowCache paramDBRowCache, int paramInt)
+    public int fetch(ResultSet rs, DBRowCache rowCache, int size)
             throws SQLException {
         int i = 0;
         int j = 0;
@@ -1909,35 +1911,35 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
         byte[] arrayOfByte2 = new byte[65536];
         char[] arrayOfChar2 = new char[65536];
         Object localObject2;
-        if (paramDBRowCache.getColumnCount() == 0) {
-            localObject2 = paramResultSet.getMetaData();
+        if (rowCache.getColumnCount() == 0) {
+            localObject2 = rs.getMetaData();
             for (i = 1; i <= ((ResultSetMetaData) localObject2).getColumnCount(); i++)
                 if (((ResultSetMetaData) localObject2).getColumnName(i) != null) {
-                    if (paramDBRowCache.findColumn(((ResultSetMetaData) localObject2).getColumnName(i)) == 0) {
-                        paramDBRowCache.addColumn(((ResultSetMetaData) localObject2).getColumnName(i), ((ResultSetMetaData) localObject2).getColumnType(i));
+                    if (rowCache.findColumn(((ResultSetMetaData) localObject2).getColumnName(i)) == 0) {
+                        rowCache.addColumn(((ResultSetMetaData) localObject2).getColumnName(i), ((ResultSetMetaData) localObject2).getColumnType(i));
                     } else {
-                        for (j = 1; paramDBRowCache.findColumn(((ResultSetMetaData) localObject2).getColumnName(i) + "_" + j) != 0; j++)
+                        for (j = 1; rowCache.findColumn(((ResultSetMetaData) localObject2).getColumnName(i) + "_" + j) != 0; j++)
                             ;
-                        paramDBRowCache.addColumn(((ResultSetMetaData) localObject2).getColumnName(i) + "_" + j, ((ResultSetMetaData) localObject2).getColumnType(i));
+                        rowCache.addColumn(((ResultSetMetaData) localObject2).getColumnName(i) + "_" + j, ((ResultSetMetaData) localObject2).getColumnType(i));
                     }
                 } else {
-                    for (j = 1; paramDBRowCache.findColumn("NULL" + j) != 0; j++) ;
-                    paramDBRowCache.addColumn("NULL" + j, ((ResultSetMetaData) localObject2).getColumnType(i));
+                    for (j = 1; rowCache.findColumn("NULL" + j) != 0; j++) ;
+                    rowCache.addColumn("NULL" + j, ((ResultSetMetaData) localObject2).getColumnType(i));
                 }
         }
-        if (paramDBRowCache.getColumnCount() == 0)
+        if (rowCache.getColumnCount() == 0)
             return 0;
         Object[] arrayOfObject;
-        for (i = paramDBRowCache.getRowCount(); (i < paramInt) && (paramResultSet.next()); i = paramDBRowCache.appendRow(arrayOfObject)) {
-            arrayOfObject = new Object[paramDBRowCache.getColumnCount()];
-            for (j = 1; j <= paramDBRowCache.getColumnCount(); j++) {
+        for (i = rowCache.getRowCount(); (i < size) && (rs.next()); i = rowCache.appendRow(arrayOfObject)) {
+            arrayOfObject = new Object[rowCache.getColumnCount()];
+            for (j = 1; j <= rowCache.getColumnCount(); j++) {
                 Object localObject1 = null;
                 int m;
                 Object localObject3;
                 Object localObject4;
-                switch (paramDBRowCache.getColumnType(j)) {
+                switch (rowCache.getColumnType(j)) {
                     case -1:
-                        localObject2 = paramResultSet.getCharacterStream(j);
+                        localObject2 = rs.getCharacterStream(j);
                         if (localObject2 == null)
                             break;
                         try {
@@ -1948,7 +1950,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         } catch (IOException localIOException1) {
                         }
                     case -4:
-                        InputStream localInputStream1 = paramResultSet.getBinaryStream(j);
+                        InputStream localInputStream1 = rs.getBinaryStream(j);
                         if (localInputStream1 == null)
                             break;
                         try {
@@ -1959,7 +1961,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         } catch (IOException localIOException2) {
                         }
                     case 2005:
-                        Clob localClob = paramResultSet.getClob(j);
+                        Clob localClob = rs.getClob(j);
                         if (localClob == null)
                             break;
                         localObject3 = localClob.getCharacterStream();
@@ -1973,7 +1975,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         } catch (IOException localIOException3) {
                         }
                     case 2004:
-                        localObject3 = paramResultSet.getBlob(j);
+                        localObject3 = rs.getBlob(j);
                         if (localObject3 == null)
                             break;
                         localObject4 = ((Blob) localObject3).getBinaryStream();
@@ -1988,12 +1990,12 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         }
                     case 1:
                     case 12:
-                        localObject4 = paramResultSet.getCharacterStream(j);
+                        localObject4 = rs.getCharacterStream(j);
                         if (localObject4 == null)
                             break;
                         try {
                             m = ((Reader) localObject4).read(arrayOfChar1);
-                            if (paramDBRowCache.getColumnType(j) == 1)
+                            if (rowCache.getColumnType(j) == 1)
                                 while ((m > 0) && (arrayOfChar1[(m - 1)] == ' '))
                                     m--;
                             if (m > 0)
@@ -2003,12 +2005,12 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         }
                     case -3:
                     case -2:
-                        InputStream localInputStream2 = paramResultSet.getAsciiStream(j);
+                        InputStream localInputStream2 = rs.getAsciiStream(j);
                         if (localInputStream2 == null)
                             break;
                         try {
                             m = localInputStream2.read(arrayOfByte1);
-                            if (paramDBRowCache.getColumnType(j) == -2)
+                            if (rowCache.getColumnType(j) == -2)
                                 while ((m > 0) && (arrayOfByte1[(m - 1)] == 32))
                                     m--;
                             if (m > 0)
@@ -2017,15 +2019,15 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         } catch (IOException localIOException6) {
                         }
                     case 91:
-                        localObject1 = paramResultSet.getDate(j);
+                        localObject1 = rs.getDate(j);
                         break;
                     case 92:
-                        localObject1 = paramResultSet.getTime(j);
+                        localObject1 = rs.getTime(j);
                         break;
                     case -102:
                     case -101:
                     case 93:
-                        localObject1 = paramResultSet.getTimestamp(j);
+                        localObject1 = rs.getTimestamp(j);
                         break;
                     case -7:
                     case -6:
@@ -2038,7 +2040,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                     case 7:
                     case 8:
                     case 16:
-                        localObject1 = paramResultSet.getObject(j);
+                        localObject1 = rs.getObject(j);
                         break;
                     case -14:
                     case -13:
@@ -2054,7 +2056,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         localObject1 = "N/A";
                         break;
                     default:
-                        localObject1 = paramResultSet.getString(j);
+                        localObject1 = rs.getString(j);
                 }
                 arrayOfObject[(j - 1)] = localObject1;
             }

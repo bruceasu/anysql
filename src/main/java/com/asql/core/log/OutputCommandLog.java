@@ -131,58 +131,73 @@ public class OutputCommandLog implements CommandLog {
         }
     }
 
-    public void print(ResultSet paramResultSet)
+    @Override
+    public void print(ResultSet rs)
             throws SQLException {
         SimpleDBRowCache rowCache = new SimpleDBRowCache();
-        int i = this.pageSize > 0 ? (400 / this.pageSize * this.pageSize) : 400;
+        int i = this.pageSize > 0
+                ? 400 / this.pageSize * this.pageSize
+                : 400;
+
+        if (this.autoTrace) {
+            int k = 0;
+            while (rs.next()) {
+                k++;
+            }
+            println(k + " rows returned.");
+            return;
+        }
+
         int j = 0;
         int k = 0;
         int m = 0;
-        String x = k + " rows returned.";
-        if (this.autoTrace) {
-            while (paramResultSet.next())
-                k++;
-            print(x);
-            return;
-        }
-        while ((j = this.sql.fetch(paramResultSet, rowCache, i)) > 0) {
-            if (m == 0)
+        while ((j = this.sql.fetch(rs, rowCache, i)) > 0) {
+            if (m == 0) {
                 for (int n = 1; n <= rowCache.getColumnCount(); n++) {
-                    if (rowCache.getColumnName(n).length() <= m)
+                    if (rowCache.getColumnName(n).length() <= m) {
                         continue;
+                    }
                     m = rowCache.getColumnName(n).length();
                 }
-            if (this.seperator.equals(" "))
+            }
+            if (this.seperator.equals(" ")) {
                 rowCache.getWidth(false);
-            if (!this.dispForm)
+            }
+            if (!this.dispForm) {
                 for (int n = 1; n <= rowCache.getRowCount(); n++) {
                     display(rowCache, k, n);
                     k++;
                 }
-            for (int n = 1; n <= j; n++) {
-                for (int i1 = 1; i1 <= rowCache.getColumnCount(); i1++) {
-                    String msg = getFixedWidth(rowCache.getColumnName(i1), m + 1, true)
-                            + ": " + rowCache.getString(n, i1);
-                   println(msg);
+            } else {
+                for (int n = 1; n <= j; n++) {
+                    for (int i1 = 1; i1 <= rowCache.getColumnCount(); i1++) {
+                        String msg = getFixedWidth(rowCache.getColumnName(i1), m + 1, true) + ": " + rowCache.getString(n, i1);
+                        println(msg);
+                    }
+                    if (n < j) {
+                        if (this.termOut) {
+                            this.out.println();
+                        }
+                        if (this.logFile != null) {
+                            this.logFile.println();
+                        }
+                    }
+                    k++;
                 }
-                if (n < j) {
-                    if (this.termOut)
-                        this.out.println();
-                    if (this.logFile != null)
-                        this.logFile.println();
-                }
-                k++;
             }
             rowCache.deleteAllRow();
-            if (j <= 0)
+            if (j <= 0) {
                 continue;
-            if (this.termOut)
+            }
+            if (this.termOut) {
                 this.out.println();
-            if (this.logFile == null)
+            }
+            if (this.logFile == null) {
                 continue;
+            }
             this.logFile.println();
         }
-        print(x);
+        println(k + " rows returned.");
     }
 
     public void println() {

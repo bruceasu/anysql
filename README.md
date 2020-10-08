@@ -331,7 +331,7 @@ AnySQL对于某些字符集的不文支持不好, 如US7ASCII, E8ISO8859P1等单
       >> mean export long/long raw/blob/clob to a file
         LOBEXP命令语法, 这里面query应当只返回两列, 第一列为文件名, 第二列为LONG或LOB字段.
     Usage:
-      LOBIMP query
+      LOBEXP query
     Note :
       Query should return tow column as following:
       col1 : CHAR or VARCHAR specify the filename.

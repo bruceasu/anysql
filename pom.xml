@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>me.asu</groupId>
+    <artifactId>anysql</artifactId>
+    <version>1.0.1-SNAPSHOT</version>
+
+
+    <properties>
+        <java.version>1.8</java.version>
+        <maven.test.skip>true</maven.test.skip>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+    </properties>
+
+
+    <dependencies>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.15</version>
+        </dependency>
+
+        <dependency>
+            <groupId>oracle</groupId>
+            <artifactId>oracle</artifactId>
+            <version>1</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/oracle.jar</systemPath>
+        </dependency>
+
+        <dependency>
+            <groupId>mssql</groupId>
+            <artifactId>jtds</artifactId>
+            <version>1</version>
+            <scope>system</scope>
+            <systemPath>${basedir}/lib/jtds.jar</systemPath>
+        </dependency>
+    </dependencies>
+</project>

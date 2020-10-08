@@ -7,7 +7,7 @@
  * the rights to use, copy, modify, merge, publish, distribute, sublicense,
  * and/or sell copies of the Software, and to permit persons to whom
  * the Software is furnished to do so, subject to the following conditions:
- *  　　
+ *
  * 　　The above copyright notice and this permission notice shall
  * be included in all copies or substantial portions of the Software.
  *
@@ -39,65 +39,70 @@ import java.util.zip.GZIPOutputStream;
 /**
  * Created by suk on 2017/8/13.
  */
-public class MutipleInvoker implements ModuleInvoker {
-    OracleSQLExecutor executor;
-    CommandLog out;
-    CMDType cmdType;
+public class MutipleInvoker implements ModuleInvoker
+{
 
-    public MutipleInvoker(OracleSQLExecutor executor) {
+    OracleSQLExecutor executor;
+    CommandLog        out;
+    CMDType           cmdType;
+
+    public MutipleInvoker(OracleSQLExecutor executor)
+    {
         this.executor = executor;
         out = executor.getCommandLog();
         cmdType = executor.getCommandType();
     }
 
     @Override
-    public boolean invoke(Command cmd) {
+    public boolean invoke(Command cmd)
+    {
         int j = executor.getMultipleID(cmd.COMMAND);
         switch (j) {
-            case ORACLE_LOB:
-                time(cmd, this::procLOB);
-                break;
-            case ORACLE_LOBEXP:
-                time(cmd, this::procLOBEXP);
-                break;
-            case ORACLE_LOBLEN:
-                time(cmd, this::procLOBLEN);
-                break;
-            case ORACLE_LOBIMP:
-                time(cmd, this::procLOBIMP);
-                break;
-            case ORACLE_EXPLAINPLAN:
-                time(cmd, this::procExplainPlan);
-                break;
-            case ORACLE_EXPMVIEW:
-                time(cmd, this::procExplainMView);
-                break;
-            case ORACLE_EXPREWRITE:
-                time(cmd, this::procExplainRewrite);
-                break;
-            case ORACLE_UNLOAD:
-                time(cmd, this::procUnload);
-                break;
-            case ORACLE_LOAD:
-                time(cmd, this::procLoad);
-                break;
-            case ORACLE_CROSS:
-                time(cmd, command -> {
-                    out.println();
-                    DBRowCache rowCacheOfSessionWait = executor.getDbRowCacheOfSessionWait();
-                    DBRowCache rowCacheOfSessionStats = executor.getDbRowCacheOfSessionStats();
-                    boolean flag = procCross(command);
-                    executor.printSessionStats(rowCacheOfSessionStats);
-                    executor.printSessionWait(rowCacheOfSessionWait);
-                    executor.printExplain(cmd);
-                    return flag;
-                });
+        case ORACLE_LOB:
+            executor.time(cmd, this::procLOB);
+            break;
+        case ORACLE_LOBEXP:
+            executor.time(cmd, this::procLOBEXP);
+            break;
+        case ORACLE_LOBLEN:
+            executor.time(cmd, this::procLOBLEN);
+            break;
+        case ORACLE_LOBIMP:
+            executor.time(cmd, this::procLOBIMP);
+            break;
+        case ORACLE_EXPLAINPLAN:
+            executor.time(cmd, this::procExplainPlan);
+            break;
+        case ORACLE_EXPMVIEW:
+            executor.time(cmd, this::procExplainMView);
+            break;
+        case ORACLE_EXPREWRITE:
+            executor.time(cmd, this::procExplainRewrite);
+            break;
+        case ORACLE_UNLOAD:
+            executor.time(cmd, this::procUnload);
+            break;
+        case ORACLE_LOAD:
+            executor.time(cmd, this::procLoad);
+            break;
+        case ORACLE_CROSS:
+            executor.time(cmd, command -> {
+                out.println();
+                DBRowCache rowCacheOfSessionWait = executor.getDbRowCacheOfSessionWait();
+                DBRowCache rowCacheOfSessionStats = executor.getDbRowCacheOfSessionStats();
+                boolean flag = procCross(command);
+                executor.printSessionStats(rowCacheOfSessionStats);
+                executor.printSessionWait(rowCacheOfSessionWait);
+                executor.printExplain(cmd);
+                return flag;
+            });
         }
 
         return true;
     }
 
-    boolean procLOB(String cmdLine) {
+    boolean procLOB(String cmdLine)
+    {
         int i = TextUtils.getWords(cmdType.getASQLMultiple()[ORACLE_LOB]).size();
         String str1 = executor.skipWord(cmdLine, i);
         String file = null;
@@ -121,7 +126,8 @@ public class MutipleInvoker implements ModuleInvoker {
         return true;
     }
 
-    boolean procLOBEXP(String cmdLine) {
+    boolean procLOBEXP(String cmdLine)
+    {
         int i = TextUtils.getWords(cmdType.getASQLMultiple()[ORACLE_LOBEXP]).size();
         String str1 = executor.skipWord(cmdLine, i);
         str1 = str1.trim();
@@ -142,17 +148,26 @@ public class MutipleInvoker implements ModuleInvoker {
             out.println("  col2 : long/long raw/blob/clob field.");
             return false;
         }
-        if (executor.checkNotConnected()) return false;
+        if (executor.checkNotConnected()) {
+            return false;
+        }
         SQLStatement localSQLStatement = null;
         ResultSet localResultSet = null;
         try {
-            localSQLStatement = executor.prepareStatement(executor.database, str1, executor.sysVariable);
+            localSQLStatement = executor.prepareStatement(executor.database, str1,
+                    executor.sysVariable);
             localSQLStatement.bind(executor.sysVariable);
             executor.currentStmt = localSQLStatement.stmt;
             localResultSet = localSQLStatement.stmt.executeQuery();
             executor.resultSet = localResultSet;
             ResultSetMetaData localResultSetMetaData = localResultSet.getMetaData();
-            if ((localResultSetMetaData.getColumnCount() != 2) || ((localResultSetMetaData.getColumnType(1) != 12) && (localResultSetMetaData.getColumnType(1) != 1)) || ((localResultSetMetaData.getColumnType(2) != -1) && (localResultSetMetaData.getColumnType(2) != -4) && (localResultSetMetaData.getColumnType(2) != 2004) && (localResultSetMetaData.getColumnType(2) != 2005))) {
+            if ((localResultSetMetaData.getColumnCount() != 2) || (
+                    (localResultSetMetaData.getColumnType(1) != 12) && (
+                            localResultSetMetaData.getColumnType(1) != 1)) || (
+                    (localResultSetMetaData.getColumnType(2) != -1) && (
+                            localResultSetMetaData.getColumnType(2) != -4) && (
+                            localResultSetMetaData.getColumnType(2) != 2004) && (
+                            localResultSetMetaData.getColumnType(2) != 2005))) {
                 out.println("Usage:");
                 out.println("  LOBEXP query");
                 out.println("Note :");
@@ -160,14 +175,16 @@ public class MutipleInvoker implements ModuleInvoker {
                 out.println("  col1 : CHAR or VARCHAR specify the filename.");
                 out.println("  col2 : long/long raw/blob/clob field.");
                 try {
-                    if (localResultSet != null)
+                    if (localResultSet != null) {
                         localResultSet.close();
+                    }
                 } catch (SQLException localSQLException3) {
                     out.print(localSQLException3);
                 }
                 try {
-                    if (localSQLStatement != null)
+                    if (localSQLStatement != null) {
                         localSQLStatement.close();
+                    }
                 } catch (SQLException localSQLException4) {
                     out.print(localSQLException4);
                 }
@@ -187,7 +204,7 @@ public class MutipleInvoker implements ModuleInvoker {
                 Object localObject3;
                 if (j == -1) {
                     localObject1 = localResultSet.getCharacterStream(2);
-                    if (localObject1 != null)
+                    if (localObject1 != null) {
                         try {
                             int k = 0;
                             localObject3 = new FileWriter(localFile);
@@ -201,9 +218,10 @@ public class MutipleInvoker implements ModuleInvoker {
                             out.println();
                             out.print(localIOException1);
                         }
+                    }
                 } else if (j == -4) {
                     localObject1 = localResultSet.getBinaryStream(2);
-                    if (localObject1 != null)
+                    if (localObject1 != null) {
                         try {
                             int m = 0;
                             localObject3 = new FileOutputStream(localFile);
@@ -217,6 +235,7 @@ public class MutipleInvoker implements ModuleInvoker {
                             out.println();
                             out.print(localIOException2);
                         }
+                    }
                 } else {
                     Object localObject2;
                     Object localObject4;
@@ -224,7 +243,7 @@ public class MutipleInvoker implements ModuleInvoker {
                         localObject1 = localResultSet.getClob(2);
                         if (localObject1 != null) {
                             localObject2 = ((Clob) localObject1).getCharacterStream();
-                            if (localObject2 != null)
+                            if (localObject2 != null) {
                                 try {
                                     int n = 0;
                                     localObject4 = new FileWriter(localFile);
@@ -238,16 +257,18 @@ public class MutipleInvoker implements ModuleInvoker {
                                     out.println();
                                     out.print(localIOException3);
                                 }
+                            }
                         }
                     } else if (j == 2004) {
                         localObject1 = localResultSet.getBlob(2);
                         if (localObject1 != null) {
                             localObject2 = ((Blob) localObject1).getBinaryStream();
-                            if (localObject2 != null)
+                            if (localObject2 != null) {
                                 try {
                                     int i1 = 0;
                                     localObject4 = new FileOutputStream(localFile);
-                                    while ((i1 = ((InputStream) localObject2).read(arrayOfByte)) > 0) {
+                                    while ((i1 = ((InputStream) localObject2).read(arrayOfByte))
+                                            > 0) {
                                         ((FileOutputStream) localObject4).write(arrayOfByte, 0, i1);
                                         l += i1;
                                     }
@@ -257,6 +278,7 @@ public class MutipleInvoker implements ModuleInvoker {
                                     out.println();
                                     out.print(localIOException4);
                                 }
+                            }
                         }
                     }
                 }
@@ -270,21 +292,24 @@ public class MutipleInvoker implements ModuleInvoker {
         executor.resultSet = null;
         executor.clearWarnings(executor.database, out);
         try {
-            if (localResultSet != null)
+            if (localResultSet != null) {
                 localResultSet.close();
+            }
         } catch (SQLException localSQLException1) {
             out.print(localSQLException1);
         }
         try {
-            if (localSQLStatement != null)
+            if (localSQLStatement != null) {
                 localSQLStatement.close();
+            }
         } catch (SQLException localSQLException2) {
             out.print(localSQLException2);
         }
         return true;
     }
 
-    boolean procLOBLEN(String cmdLine) {
+    boolean procLOBLEN(String cmdLine)
+    {
         int i = TextUtils.getWords(cmdType.getASQLMultiple()[ORACLE_LOBLEN]).size();
         String str = executor.skipWord(cmdLine, i);
         str = str.trim();
@@ -304,7 +329,9 @@ public class MutipleInvoker implements ModuleInvoker {
             out.println("  col1 : long/long raw/blob/clob field.");
             return false;
         }
-        if (executor.checkNotConnected()) return false;
+        if (executor.checkNotConnected()) {
+            return false;
+        }
         SQLStatement statement = null;
         ResultSet resultSet = null;
         try {
@@ -314,21 +341,29 @@ public class MutipleInvoker implements ModuleInvoker {
             resultSet = statement.stmt.executeQuery();
             executor.resultSet = resultSet;
             ResultSetMetaData localResultSetMetaData = resultSet.getMetaData();
-            if ((localResultSetMetaData.getColumnCount() != 1) || ((localResultSetMetaData.getColumnType(1) != 12) && (localResultSetMetaData.getColumnType(1) != 1) && (localResultSetMetaData.getColumnType(1) != -1) && (localResultSetMetaData.getColumnType(1) != -4) && (localResultSetMetaData.getColumnType(1) != 2004) && (localResultSetMetaData.getColumnType(1) != 2005))) {
+            if ((localResultSetMetaData.getColumnCount() != 1) || (
+                    (localResultSetMetaData.getColumnType(1) != 12) && (
+                            localResultSetMetaData.getColumnType(1) != 1) && (
+                            localResultSetMetaData.getColumnType(1) != -1) && (
+                            localResultSetMetaData.getColumnType(1) != -4) && (
+                            localResultSetMetaData.getColumnType(1) != 2004) && (
+                            localResultSetMetaData.getColumnType(1) != 2005))) {
                 out.println("Usage:");
                 out.println("  LOBLEN query");
                 out.println("Note :");
                 out.println("  Query should return one column as following:");
                 out.println("  col1 : long/long raw/blob/clob field.");
                 try {
-                    if (resultSet != null)
+                    if (resultSet != null) {
                         resultSet.close();
+                    }
                 } catch (SQLException localSQLException3) {
                     out.print(localSQLException3);
                 }
                 try {
-                    if (statement != null)
+                    if (statement != null) {
                         statement.close();
+                    }
                 } catch (SQLException localSQLException4) {
                     out.print(localSQLException4);
                 }
@@ -340,59 +375,68 @@ public class MutipleInvoker implements ModuleInvoker {
                 Object localObject1;
                 if (j == -1) {
                     localObject1 = resultSet.getCharacterStream(1);
-                    if (localObject1 != null)
+                    if (localObject1 != null) {
                         try {
                             int k = 0;
-                            while ((k = ((Reader) localObject1).read(arrayOfChar)) > 0)
+                            while ((k = ((Reader) localObject1).read(arrayOfChar)) > 0) {
                                 l += k;
+                            }
                             ((Reader) localObject1).close();
                         } catch (IOException localIOException1) {
                             out.println();
                             out.print(localIOException1);
                         }
+                    }
                 } else if (j == -4) {
                     localObject1 = resultSet.getBinaryStream(1);
-                    if (localObject1 != null)
+                    if (localObject1 != null) {
                         try {
                             int m = 0;
-                            while ((m = ((InputStream) localObject1).read(arrayOfByte)) > 0)
+                            while ((m = ((InputStream) localObject1).read(arrayOfByte)) > 0) {
                                 l += m;
+                            }
                             ((InputStream) localObject1).close();
                         } catch (IOException localIOException2) {
                             out.println();
                             out.print(localIOException2);
                         }
+                    }
                 } else {
                     Object localObject2;
                     if (j == 2005) {
                         localObject1 = resultSet.getClob(1);
                         if (localObject1 != null) {
                             localObject2 = ((Clob) localObject1).getCharacterStream();
-                            if (localObject2 != null)
+                            if (localObject2 != null) {
                                 try {
                                     int n = 0;
-                                    while ((n = ((Reader) localObject2).read(arrayOfChar)) > 0)
+                                    while ((n = ((Reader) localObject2).read(arrayOfChar)) > 0) {
                                         l += n;
+                                    }
                                     ((Reader) localObject2).close();
                                 } catch (IOException localIOException3) {
                                     out.println();
                                     out.print(localIOException3);
                                 }
+                            }
                         }
                     } else if (j == 2004) {
                         localObject1 = resultSet.getBlob(1);
                         if (localObject1 != null) {
                             localObject2 = ((Blob) localObject1).getBinaryStream();
-                            if (localObject2 != null)
+                            if (localObject2 != null) {
                                 try {
                                     int i1 = 0;
-                                    while ((i1 = ((InputStream) localObject2).read(arrayOfByte)) > 0)
+                                    while ((i1 = ((InputStream) localObject2).read(arrayOfByte))
+                                            > 0) {
                                         l += i1;
+                                    }
                                     ((InputStream) localObject2).close();
                                 } catch (IOException localIOException4) {
                                     out.println();
                                     out.print(localIOException4);
                                 }
+                            }
                         }
                     }
                 }
@@ -411,7 +455,8 @@ public class MutipleInvoker implements ModuleInvoker {
         return true;
     }
 
-    boolean procLOBIMP(String cmdLine) {
+    boolean procLOBIMP(String cmdLine)
+    {
         long l1 = 0L;
         int i = TextUtils.getWords(cmdType.getASQLMultiple()[ORACLE_LOBIMP]).size();
         String str1 = executor.skipWord(cmdLine, i);
@@ -426,21 +471,24 @@ public class MutipleInvoker implements ModuleInvoker {
             lobImpUsage();
             return false;
         }
-        if (executor.checkNotConnected()) return false;
+        if (executor.checkNotConnected()) {
+            return false;
+        }
         SQLStatement localSQLStatement = null;
         ResultSet localResultSet = null;
         try {
-            localSQLStatement = executor.prepareStatement(executor.database, str1, executor.sysVariable);
+            localSQLStatement = executor.prepareStatement(executor.database, str1,
+                    executor.sysVariable);
             localSQLStatement.bind(executor.sysVariable);
             executor.currentStmt = localSQLStatement.stmt;
             localResultSet = localSQLStatement.stmt.executeQuery();
             executor.resultSet = localResultSet;
             ResultSetMetaData localResultSetMetaData = localResultSet.getMetaData();
-            if ((localResultSetMetaData.getColumnCount() != 2)
-                    || ((localResultSetMetaData.getColumnType(1) != 12)
-                    && (localResultSetMetaData.getColumnType(1) != 1))
-                    || ((localResultSetMetaData.getColumnType(2) != 2004)
-                    && (localResultSetMetaData.getColumnType(2) != 2005))) {
+            if ((localResultSetMetaData.getColumnCount() != 2) || (
+                    (localResultSetMetaData.getColumnType(1) != 12) && (
+                            localResultSetMetaData.getColumnType(1) != 1)) || (
+                    (localResultSetMetaData.getColumnType(2) != 2004) && (
+                            localResultSetMetaData.getColumnType(2) != 2005))) {
                 lobImpUsage();
                 closeQuietly(localResultSet);
                 closeQuietly(localSQLStatement);
@@ -465,8 +513,9 @@ public class MutipleInvoker implements ModuleInvoker {
                 if (localResultSetMetaData.getColumnType(2) == 2005) {
                     Clob clob = localResultSet.getClob(2);
                     l2 = 0L;
-                    if (clob != null)
+                    if (clob != null) {
                         clob.truncate(l1);
+                    }
                     try (Writer writer = clob.setCharacterStream(l1)) {
                         int j = 0;
                         FileReader reader = new FileReader(localFile);
@@ -509,18 +558,23 @@ public class MutipleInvoker implements ModuleInvoker {
         return true;
     }
 
-    boolean procExplainPlan(String cmdLine) {
+    boolean procExplainPlan(String cmdLine)
+    {
         int i = TextUtils.getWords(cmdType.getASQLMultiple()[ORACLE_EXPLAINPLAN]).size();
         String str = executor.skipWord(cmdLine, i);
-        if (executor.checkNotConnected()) return false;
+        if (executor.checkNotConnected()) {
+            return false;
+        }
         DBRowCache localDBRowCache = executor.getExplainPlan(str);
-        if ((localDBRowCache != null) && (localDBRowCache.getRowCount() > 0))
+        if ((localDBRowCache != null) && (localDBRowCache.getRowCount() > 0)) {
             executor.showDBRowCache(localDBRowCache, true);
+        }
 
         return true;
     }
 
-    boolean procExplainMView(String cmdLine) {
+    boolean procExplainMView(String cmdLine)
+    {
         int i = TextUtils.getWords(cmdType.getASQLMultiple()[ORACLE_EXPMVIEW]).size();
         VariableTable table = new VariableTable();
         String str1 = executor.skipWord(cmdLine, i);
@@ -528,21 +582,28 @@ public class MutipleInvoker implements ModuleInvoker {
         DBRowCache rowCache = null;
         SQLStatement statement = null;
         SQLCallable callable = null;
-        if (executor.checkNotConnected()) return false;
+        if (executor.checkNotConnected()) {
+            return false;
+        }
         try {
             table.add("PLAN_STMT_ID", 12);
             table.setValue("PLAN_STMT_ID", str2);
             table.add("PLAN_STMT_SQL", 12);
             table.setValue("PLAN_STMT_SQL", str1);
-            statement = executor.prepareStatement(executor.database, "DELETE FROM MV_CAPABILITIES_TABLE WHERE STATEMENT_ID = :PLAN_STMT_ID", executor.sysVariable);
+            statement = executor.prepareStatement(executor.database,
+                    "DELETE FROM MV_CAPABILITIES_TABLE WHERE STATEMENT_ID = :PLAN_STMT_ID",
+                    executor.sysVariable);
             if (statement != null) {
                 statement.bind(table);
                 statement.stmt.execute();
             }
-            callable = executor.prepareCall(executor.database, "DBMS_MVIEW.EXPLAIN_MVIEW(MV=>:PLAN_STMT_SQL,STMT_ID=>:PLAN_STMT_ID)", table);
+            callable = executor.prepareCall(executor.database,
+                    "DBMS_MVIEW.EXPLAIN_MVIEW(MV=>:PLAN_STMT_SQL,STMT_ID=>:PLAN_STMT_ID)", table);
             callable.bind(table);
             callable.stmt.execute();
-            rowCache = executor.executeQuery(executor.database, "select seq,CAPABILITY_NAME,POSSIBLE Y,MSGTXT from MV_CAPABILITIES_TABLE WHERE STATEMENT_ID = :PLAN_STMT_ID order by seq", table);
+            rowCache = executor.executeQuery(executor.database,
+                    "select seq,CAPABILITY_NAME,POSSIBLE Y,MSGTXT from MV_CAPABILITIES_TABLE WHERE STATEMENT_ID = :PLAN_STMT_ID order by seq",
+                    table);
             executor.showDBRowCache(rowCache, true);
             if (statement != null) {
                 statement.bind(table);
@@ -559,7 +620,8 @@ public class MutipleInvoker implements ModuleInvoker {
         return true;
     }
 
-    boolean procExplainRewrite(String cmdLine) {
+    boolean procExplainRewrite(String cmdLine)
+    {
         int i = TextUtils.getWords(cmdType.getASQLMultiple()[ORACLE_EXPREWRITE]).size();
         VariableTable table = new VariableTable();
         String str1 = executor.skipWord(cmdLine, i);
@@ -567,21 +629,28 @@ public class MutipleInvoker implements ModuleInvoker {
         DBRowCache cache = null;
         SQLStatement statement = null;
         SQLCallable callable = null;
-        if (executor.checkNotConnected()) return false;
+        if (executor.checkNotConnected()) {
+            return false;
+        }
         try {
             table.add("PLAN_STMT_ID", 12);
             table.setValue("PLAN_STMT_ID", str2);
             table.add("PLAN_STMT_SQL", 12);
             table.setValue("PLAN_STMT_SQL", str1);
-            statement = executor.prepareStatement(executor.database, "DELETE FROM REWRITE_TABLE WHERE STATEMENT_ID = :PLAN_STMT_ID", executor.sysVariable);
+            statement = executor.prepareStatement(executor.database,
+                    "DELETE FROM REWRITE_TABLE WHERE STATEMENT_ID = :PLAN_STMT_ID",
+                    executor.sysVariable);
             if (statement != null) {
                 statement.bind(table);
                 statement.stmt.execute();
             }
-            callable = executor.prepareCall(executor.database, "DBMS_MVIEW.EXPLAIN_REWRITE(QUERY=>:PLAN_STMT_SQL,STATEMENT_ID=>:PLAN_STMT_ID)", table);
+            callable = executor.prepareCall(executor.database,
+                    "DBMS_MVIEW.EXPLAIN_REWRITE(QUERY=>:PLAN_STMT_SQL,STATEMENT_ID=>:PLAN_STMT_ID)",
+                    table);
             callable.bind(table);
             callable.stmt.execute();
-            cache = executor.executeQuery(executor.database, "select MESSAGE from REWRITE_TABLE WHERE STATEMENT_ID = :PLAN_STMT_ID", table);
+            cache = executor.executeQuery(executor.database,
+                    "select MESSAGE from REWRITE_TABLE WHERE STATEMENT_ID = :PLAN_STMT_ID", table);
             executor.showDBRowCache(cache, true);
             callable.close();
             if (statement != null) {
@@ -600,7 +669,8 @@ public class MutipleInvoker implements ModuleInvoker {
         return true;
     }
 
-    boolean procLoad(String cmdLine) {
+    boolean procLoad(String cmdLine)
+    {
         int i = TextUtils.getWords(cmdType.getASQLMultiple()[ORACLE_LOAD]).size();
         String str1 = executor.skipWord(cmdLine, i);
         OptionCommand optionCommand = new OptionCommand(str1);
@@ -609,9 +679,12 @@ public class MutipleInvoker implements ModuleInvoker {
         int j = optionCommand.getInt("S", 0);
         String file = null;
         String query = null;
-        if (executor.checkNotConnected()) return false;
-        if (j < 0)
+        if (executor.checkNotConnected()) {
+            return false;
+        }
+        if (j < 0) {
             j = 0;
+        }
         int k = str1.indexOf("<<");
         if (k >= 0) {
             query = str1.substring(0, k).trim();
@@ -632,8 +705,9 @@ public class MutipleInvoker implements ModuleInvoker {
         int m = 0;
         try {
             reader = new BufferedReader(new FileReader(file));
-            for (int n = 0; n < j; n++)
+            for (int n = 0; n < j; n++) {
                 reader.readLine();
+            }
         } catch (IOException localIOException1) {
             out.println(localIOException1.getMessage());
             return false;
@@ -643,11 +717,11 @@ public class MutipleInvoker implements ModuleInvoker {
             do {
                 executor.loadBuffer.deleteAllRow();
                 executor.loadBuffer.read(reader, str2, 200);
-                statement.executeBatch(executor.sysVariable, executor.loadBuffer, 1, executor.loadBuffer.getRowCount());
+                statement.executeBatch(executor.sysVariable, executor.loadBuffer, 1,
+                        executor.loadBuffer.getRowCount());
                 executor.database.commit();
                 m += executor.loadBuffer.getRowCount();
-            }
-            while (executor.loadBuffer.getRowCount() == 200);
+            } while (executor.loadBuffer.getRowCount() == 200);
             out.println("Command Completed.");
         } catch (Exception e) {
             out.println(e.getMessage());
@@ -660,7 +734,8 @@ public class MutipleInvoker implements ModuleInvoker {
         return true;
     }
 
-    boolean procUnload(String cmdLine) {
+    boolean procUnload(String cmdLine)
+    {
         int i = TextUtils.getWords(cmdType.getASQLMultiple()[5]).size();
         String str1 = executor.skipWord(cmdLine, i);
         OptionCommand optionCommand = new OptionCommand(str1);
@@ -670,7 +745,9 @@ public class MutipleInvoker implements ModuleInvoker {
         boolean optH = optionCommand.getBoolean("H", true);
         String file = null;
         String query = null;
-        if (executor.checkNotConnected()) return false;
+        if (executor.checkNotConnected()) {
+            return false;
+        }
         int j = str1.indexOf(">>");
         if (j >= 0) {
             query = str1.substring(0, j).trim();
@@ -697,12 +774,17 @@ public class MutipleInvoker implements ModuleInvoker {
             executor.currentStmt = statement.stmt;
             resultSet = statement.stmt.executeQuery();
             executor.resultSet = resultSet;
-            out.println("Query executed in " + DBOperation.getElapsed(System.currentTimeMillis() - l));
-            if (file.trim().endsWith(".gz"))
-                printStream = new PrintStream(new BufferedOutputStream(new GZIPOutputStream(new FileOutputStream(localFile), 65536)));
-            else
-                printStream = new PrintStream(new BufferedOutputStream(new FileOutputStream(localFile), 262144));
-            writeData(printStream, resultSet, executor.parseRecord(optF), executor.parseRecord(optR), optH);
+            out.println(
+                    "Query executed in " + DBOperation.getElapsed(System.currentTimeMillis() - l));
+            if (file.trim().endsWith(".gz")) {
+                printStream = new PrintStream(new BufferedOutputStream(
+                        new GZIPOutputStream(new FileOutputStream(localFile), 65536)));
+            } else {
+                printStream = new PrintStream(
+                        new BufferedOutputStream(new FileOutputStream(localFile), 262144));
+            }
+            writeData(printStream, resultSet, executor.parseRecord(optF),
+                    executor.parseRecord(optR), optH);
             printStream.close();
             resultSet.close();
             statement.close();
@@ -719,12 +801,16 @@ public class MutipleInvoker implements ModuleInvoker {
         }
     }
 
-    boolean procCross(String cmdLine) {
+    boolean procCross(String cmdLine)
+    {
         int i = TextUtils.getWords(cmdType.getASQLMultiple()[ORACLE_CROSS]).size();
         String str = executor.skipWord(cmdLine, i);
-        if (executor.checkNotConnected()) return false;
+        if (executor.checkNotConnected()) {
+            return false;
+        }
         try {
-            DBRowCache localDBRowCache = DBOperation.crossQuery(executor.database, str, executor.sysVariable);
+            DBRowCache localDBRowCache = DBOperation.crossQuery(executor.database, str,
+                    executor.sysVariable);
             if (localDBRowCache.getColumnCount() > 0) {
                 localDBRowCache.getWidth(false);
                 out.print(localDBRowCache);
@@ -739,22 +825,27 @@ public class MutipleInvoker implements ModuleInvoker {
         return true;
     }
 
-    void procLOBREAD(String cmdLine1, String cmdLine2) {
+    void procLOBREAD(String cmdLine1, String cmdLine2)
+    {
         if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 3)) {
             out.println("Java VM 1.3 or above required to support this feature.");
             return;
         }
-        if ((cmdLine2 == null) || (cmdLine1 == null) || (cmdLine2.length() == 0) || (cmdLine1.length() == 0)) {
+        if ((cmdLine2 == null) || (cmdLine1 == null) || (cmdLine2.length() == 0) || (
+                cmdLine1.length() == 0)) {
             lobUsage();
             return;
         }
         cmdLine2 = executor.sysVariable.parseString(cmdLine2);
-        if (executor.checkNotConnected()) return;
+        if (executor.checkNotConnected()) {
+            return;
+        }
         SQLStatement localSQLStatement = null;
         ResultSet localResultSet = null;
         File localFile = new File(cmdLine2);
         try {
-            localSQLStatement = executor.prepareStatement(executor.database, cmdLine1, executor.sysVariable);
+            localSQLStatement = executor.prepareStatement(executor.database, cmdLine1,
+                    executor.sysVariable);
             localSQLStatement.bind(executor.sysVariable);
             localResultSet = localSQLStatement.stmt.executeQuery();
             ResultSetMetaData localResultSetMetaData = localResultSet.getMetaData();
@@ -859,18 +950,22 @@ public class MutipleInvoker implements ModuleInvoker {
         }
     }
 
-    void procLOBWRITE(String cmdLine1, String cmdLine2) {
+    void procLOBWRITE(String cmdLine1, String cmdLine2)
+    {
         long l1 = 0L;
         if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 4)) {
             out.println("Java VM 1.4 or above required to support this feature.");
             return;
         }
-        if (((cmdLine2 == null) && (cmdLine1 == null)) || (cmdLine2.length() == 0) || (cmdLine1.length() == 0)) {
+        if (((cmdLine2 == null) && (cmdLine1 == null)) || (cmdLine2.length() == 0) || (
+                cmdLine1.length() == 0)) {
             lobUsage();
             return;
         }
         cmdLine2 = executor.sysVariable.parseString(cmdLine2);
-        if (executor.checkNotConnected()) return;
+        if (executor.checkNotConnected()) {
+            return;
+        }
         SQLStatement statement = null;
         ResultSet resultSet = null;
         File localFile = new File(cmdLine2);
@@ -887,7 +982,8 @@ public class MutipleInvoker implements ModuleInvoker {
             return;
         }
         try {
-            statement = executor.prepareStatement(executor.database, cmdLine1, executor.sysVariable);
+            statement = executor.prepareStatement(executor.database, cmdLine1,
+                    executor.sysVariable);
             statement.bind(executor.sysVariable);
             resultSet = statement.stmt.executeQuery();
             ResultSetMetaData localResultSetMetaData = resultSet.getMetaData();
@@ -899,7 +995,7 @@ public class MutipleInvoker implements ModuleInvoker {
                         char[] arrayOfChar = new char[16384];
                         clob.truncate(l1);
                         try (Writer writer = clob.setCharacterStream(l1);
-                             FileReader fileReader = new FileReader(localFile);){
+                             FileReader fileReader = new FileReader(localFile);) {
                             int i = 0;
                             while ((i = fileReader.read(arrayOfChar)) > 0) {
                                 writer.write(arrayOfChar, 0, i);
@@ -915,7 +1011,7 @@ public class MutipleInvoker implements ModuleInvoker {
                         byte[] arrayOfByte = new byte[16384];
                         long l3 = 0L;
                         try (OutputStream outputStream = blob.setBinaryStream(l1);
-                             FileInputStream fileInputStream = new FileInputStream(localFile);){
+                             FileInputStream fileInputStream = new FileInputStream(localFile);) {
                             int j = 0;
                             blob.truncate(l1);
                             while ((j = fileInputStream.read(arrayOfByte)) > 0) {
@@ -941,17 +1037,9 @@ public class MutipleInvoker implements ModuleInvoker {
 
     }
 
-    private boolean time(Command cmd, Function<String, Boolean> function) {
-        out.println();
-        long l1 = System.currentTimeMillis();
-        boolean r = function.apply(cmd.COMMAND);
-        long l2 = System.currentTimeMillis();
-        executor.printCost(l2, l1);
-        out.println();
-        return r;
-    }
 
-    private void lobImpUsage() {
+    private void lobImpUsage()
+    {
         out.println("Usage:");
         out.println("  LOBIMP query");
         out.println("Note :");
@@ -960,7 +1048,8 @@ public class MutipleInvoker implements ModuleInvoker {
         out.println("  col2 : blob/clob field.");
     }
 
-    private void loadUsage() {
+    private void loadUsage()
+    {
         out.println("Usage:");
         out.println("  LOAD -option val query << file");
         out.println("Note :");
@@ -968,7 +1057,8 @@ public class MutipleInvoker implements ModuleInvoker {
         out.println("  -S skip lines (values > 0)");
     }
 
-    private void unloadUsage() {
+    private void unloadUsage()
+    {
         out.println("Usage:");
         out.println("  UNLOAD -option val query >> file");
         out.println("Note :");
@@ -977,7 +1067,8 @@ public class MutipleInvoker implements ModuleInvoker {
         out.println("  -H display field name {ON|OFF}");
     }
 
-    private void lobUsage() {
+    private void lobUsage()
+    {
         out.println("Usage:");
         out.println("  LOB query >> file");
         out.println("  LOB query << file");
@@ -987,19 +1078,22 @@ public class MutipleInvoker implements ModuleInvoker {
         out.println("     should include the for update clause");
     }
 
-    private void closeQuietly(AutoCloseable closeable) {
+    private void closeQuietly(AutoCloseable closeable)
+    {
         try {
-            if (closeable != null) closeable.close();
+            if (closeable != null) {
+                closeable.close();
+            }
         } catch (Throwable ignore) {
         }
     }
 
     private long writeData(PrintStream paramPrintStream,
-                          ResultSet paramResultSet,
-                          String cmdLine1,
-                          String cmdLine2,
-                          boolean paramBoolean)
-            throws SQLException, IOException {
+                           ResultSet paramResultSet,
+                           String cmdLine1,
+                           String cmdLine2,
+                           boolean paramBoolean) throws SQLException, IOException
+    {
         long l1 = 0L;
         String str1 = null;
         int i = 0;
@@ -1017,168 +1111,210 @@ public class MutipleInvoker implements ModuleInvoker {
         SimpleDateFormat localSimpleDateFormat4 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS Z");
         for (int k = 0; k < j; k++) {
             arrayOfInt[k] = localResultSetMetaData.getColumnType(k + 1);
-            if (!paramBoolean)
+            if (!paramBoolean) {
                 continue;
+            }
             str1 = localResultSetMetaData.getColumnName(k + 1);
-            if (str1 != null)
+            if (str1 != null) {
                 paramPrintStream.print(str1);
-            if (k >= j - 1)
+            }
+            if (k >= j - 1) {
                 continue;
+            }
             paramPrintStream.print(cmdLine1);
         }
-        if (paramBoolean)
+        if (paramBoolean) {
             paramPrintStream.print(cmdLine2);
+        }
         while (paramResultSet.next()) {
             l1 += 1L;
             for (int k = 1; k <= j; k++) {
                 Object localObject1;
                 Object localObject2;
                 switch (arrayOfInt[(k - 1)]) {
-                    case -1:
-                        Reader localReader = paramResultSet.getCharacterStream(k);
-                        if (localReader == null)
-                            break;
-                        try {
-                            for (i = localReader.read(arrayOfChar2); i > 0; i = localReader.read(arrayOfChar2)) {
-                                paramPrintStream.print(String.valueOf(arrayOfChar2, 0, i));
-                                if (i < 65536)
-                                    break;
+                case -1:
+                    Reader localReader = paramResultSet.getCharacterStream(k);
+                    if (localReader == null) {
+                        break;
+                    }
+                    try {
+                        for (i = localReader.read(arrayOfChar2); i > 0;
+                                i = localReader.read(arrayOfChar2)) {
+                            paramPrintStream.print(String.valueOf(arrayOfChar2, 0, i));
+                            if (i < 65536) {
+                                break;
                             }
-                            localReader.close();
-                        } catch (IOException localIOException1) {
                         }
-                    case -4:
-                        InputStream localInputStream1 = paramResultSet.getBinaryStream(k);
-                        if (localInputStream1 == null)
-                            break;
-                        try {
-                            for (i = localInputStream1.read(arrayOfByte2); i > 0; i = localInputStream1.read(arrayOfByte2)) {
-                                paramPrintStream.write(arrayOfByte2, 0, i);
-                                if (i < 65536)
-                                    break;
+                        localReader.close();
+                    } catch (IOException localIOException1) {
+                    }
+                case -4:
+                    InputStream localInputStream1 = paramResultSet.getBinaryStream(k);
+                    if (localInputStream1 == null) {
+                        break;
+                    }
+                    try {
+                        for (i = localInputStream1.read(arrayOfByte2); i > 0;
+                                i = localInputStream1.read(arrayOfByte2)) {
+                            paramPrintStream.write(arrayOfByte2, 0, i);
+                            if (i < 65536) {
+                                break;
                             }
-                            localInputStream1.close();
-                        } catch (IOException localIOException2) {
                         }
-                    case 2005:
-                        Clob localClob = paramResultSet.getClob(k);
-                        if (localClob == null)
-                            break;
-                        localObject1 = localClob.getCharacterStream();
-                        if (localObject1 == null)
-                            break;
-                        try {
-                            for (i = ((Reader) localObject1).read(arrayOfChar2); i > 0; i = ((Reader) localObject1).read(arrayOfChar2)) {
-                                paramPrintStream.print(String.valueOf(arrayOfChar2, 0, i));
-                                if (i < 65536)
-                                    break;
+                        localInputStream1.close();
+                    } catch (IOException localIOException2) {
+                    }
+                case 2005:
+                    Clob localClob = paramResultSet.getClob(k);
+                    if (localClob == null) {
+                        break;
+                    }
+                    localObject1 = localClob.getCharacterStream();
+                    if (localObject1 == null) {
+                        break;
+                    }
+                    try {
+                        for (i = ((Reader) localObject1).read(arrayOfChar2); i > 0;
+                                i = ((Reader) localObject1).read(arrayOfChar2)) {
+                            paramPrintStream.print(String.valueOf(arrayOfChar2, 0, i));
+                            if (i < 65536) {
+                                break;
                             }
-                            ((Reader) localObject1).close();
-                        } catch (IOException localIOException3) {
                         }
-                    case 2004:
-                        localObject1 = paramResultSet.getBlob(k);
-                        if (localObject1 == null)
-                            break;
-                        localObject2 = ((Blob) localObject1).getBinaryStream();
-                        if (localObject2 == null)
-                            break;
-                        try {
-                            for (i = ((InputStream) localObject2).read(arrayOfByte2); i > 0; i = ((InputStream) localObject2).read(arrayOfByte2)) {
-                                paramPrintStream.write(arrayOfByte2, 0, i);
-                                if (i < 65536)
-                                    break;
+                        ((Reader) localObject1).close();
+                    } catch (IOException localIOException3) {
+                    }
+                case 2004:
+                    localObject1 = paramResultSet.getBlob(k);
+                    if (localObject1 == null) {
+                        break;
+                    }
+                    localObject2 = ((Blob) localObject1).getBinaryStream();
+                    if (localObject2 == null) {
+                        break;
+                    }
+                    try {
+                        for (i = ((InputStream) localObject2).read(arrayOfByte2); i > 0;
+                                i = ((InputStream) localObject2).read(arrayOfByte2)) {
+                            paramPrintStream.write(arrayOfByte2, 0, i);
+                            if (i < 65536) {
+                                break;
                             }
-                            ((InputStream) localObject2).close();
-                        } catch (IOException localIOException4) {
                         }
-                    case 1:
-                    case 12:
-                        localObject2 = paramResultSet.getCharacterStream(k);
-                        if (localObject2 == null)
-                            break;
-                        try {
-                            i = ((Reader) localObject2).read(arrayOfChar1);
-                            if (arrayOfInt[(k - 1)] == 1)
-                                while ((i > 0) && (arrayOfChar1[(i - 1)] == ' '))
-                                    i--;
-                            if (i > 0)
-                                paramPrintStream.print(String.valueOf(arrayOfChar1, 0, i));
-                            ((Reader) localObject2).close();
-                        } catch (IOException localIOException5) {
+                        ((InputStream) localObject2).close();
+                    } catch (IOException localIOException4) {
+                    }
+                case 1:
+                case 12:
+                    localObject2 = paramResultSet.getCharacterStream(k);
+                    if (localObject2 == null) {
+                        break;
+                    }
+                    try {
+                        i = ((Reader) localObject2).read(arrayOfChar1);
+                        if (arrayOfInt[(k - 1)] == 1) {
+                            while ((i > 0) && (arrayOfChar1[(i - 1)] == ' ')) {
+                                i--;
+                            }
                         }
-                    case -3:
-                    case -2:
-                        InputStream localInputStream2 = paramResultSet.getAsciiStream(k);
-                        if (localInputStream2 == null)
-                            break;
-                        try {
-                            i = localInputStream2.read(arrayOfByte1);
-                            if (arrayOfInt[(k - 1)] == -2)
-                                while ((i > 0) && (arrayOfByte1[(i - 1)] == 32))
-                                    i--;
-                            if (i > 0)
-                                paramPrintStream.write(arrayOfByte1, 0, i);
-                            localInputStream2.close();
-                        } catch (IOException localIOException6) {
+                        if (i > 0) {
+                            paramPrintStream.print(String.valueOf(arrayOfChar1, 0, i));
                         }
-                    case 91:
-                        Timestamp localTimestamp1 = paramResultSet.getTimestamp(k);
-                        if (localTimestamp1 == null)
-                            break;
-                        paramPrintStream.print(localSimpleDateFormat1.format(localTimestamp1));
+                        ((Reader) localObject2).close();
+                    } catch (IOException localIOException5) {
+                    }
+                case -3:
+                case -2:
+                    InputStream localInputStream2 = paramResultSet.getAsciiStream(k);
+                    if (localInputStream2 == null) {
                         break;
-                    case 92:
-                        Time localTime = paramResultSet.getTime(k);
-                        if (localTime == null)
-                            break;
-                        paramPrintStream.print(localSimpleDateFormat2.format(localTime));
+                    }
+                    try {
+                        i = localInputStream2.read(arrayOfByte1);
+                        if (arrayOfInt[(k - 1)] == -2) {
+                            while ((i > 0) && (arrayOfByte1[(i - 1)] == 32)) {
+                                i--;
+                            }
+                        }
+                        if (i > 0) {
+                            paramPrintStream.write(arrayOfByte1, 0, i);
+                        }
+                        localInputStream2.close();
+                    } catch (IOException localIOException6) {
+                    }
+                case 91:
+                    Timestamp localTimestamp1 = paramResultSet.getTimestamp(k);
+                    if (localTimestamp1 == null) {
                         break;
-                    case 93:
-                        Timestamp localTimestamp2 = paramResultSet.getTimestamp(k);
-                        if (localTimestamp2 == null)
-                            break;
-                        paramPrintStream.print(localSimpleDateFormat3.format(localTimestamp2));
+                    }
+                    paramPrintStream.print(localSimpleDateFormat1.format(localTimestamp1));
+                    break;
+                case 92:
+                    Time localTime = paramResultSet.getTime(k);
+                    if (localTime == null) {
                         break;
-                    case -102:
-                    case -101:
-                        Timestamp localTimestamp3 = paramResultSet.getTimestamp(k);
-                        if (localTimestamp3 == null)
-                            break;
-                        paramPrintStream.print(localSimpleDateFormat4.format(localTimestamp3));
+                    }
+                    paramPrintStream.print(localSimpleDateFormat2.format(localTime));
+                    break;
+                case 93:
+                    Timestamp localTimestamp2 = paramResultSet.getTimestamp(k);
+                    if (localTimestamp2 == null) {
                         break;
-                    case -14:
-                    case -13:
-                    case -10:
-                    case 0:
-                    case 70:
-                    case 1111:
-                    case 2000:
-                    case 2001:
-                    case 2002:
-                    case 2003:
-                    case 2006:
+                    }
+                    paramPrintStream.print(localSimpleDateFormat3.format(localTimestamp2));
+                    break;
+                case -102:
+                case -101:
+                    Timestamp localTimestamp3 = paramResultSet.getTimestamp(k);
+                    if (localTimestamp3 == null) {
                         break;
-                    default:
-                        String str2 = paramResultSet.getString(k);
-                        if (str2 == null)
-                            break;
-                        paramPrintStream.print(str2);
+                    }
+                    paramPrintStream.print(localSimpleDateFormat4.format(localTimestamp3));
+                    break;
+                case -14:
+                case -13:
+                case -10:
+                case 0:
+                case 70:
+                case 1111:
+                case 2000:
+                case 2001:
+                case 2002:
+                case 2003:
+                case 2006:
+                    break;
+                default:
+                    String str2 = paramResultSet.getString(k);
+                    if (str2 == null) {
+                        break;
+                    }
+                    paramPrintStream.print(str2);
                 }
-                if (k < j)
+                if (k < j) {
                     paramPrintStream.print(cmdLine1);
-                else
+                } else {
                     paramPrintStream.print(cmdLine2);
+                }
             }
-            if (l1 % 100000L != 0L)
+            if (l1 % 100000L != 0L) {
                 continue;
-            executor.getCommandLog().println(executor.lpad(String.valueOf(l1), 12) + " rows writed in " + DBOperation.getElapsed(System.currentTimeMillis() - l2));
+            }
+            executor.getCommandLog()
+                    .println(
+                            executor.lpad(String.valueOf(l1), 12) + " rows writed in " + DBOperation
+                                    .getElapsed(System.currentTimeMillis() - l2));
         }
         l2 = System.currentTimeMillis() - l2;
-        if (l1 % 100000L != 0L)
-            executor.getCommandLog().println(executor.lpad(String.valueOf(l1), 12) + " rows writed in " + DBOperation.getElapsed(l2));
-        if (l2 > 0L)
-            executor.getCommandLog().println("Done, total:" + l1 + " , avg:" + l1 * 1000L / l2 + " rows/s.");
+        if (l1 % 100000L != 0L) {
+            executor.getCommandLog()
+                    .println(
+                            executor.lpad(String.valueOf(l1), 12) + " rows writed in " + DBOperation
+                                    .getElapsed(l2));
+        }
+        if (l2 > 0L) {
+            executor.getCommandLog()
+                    .println("Done, total:" + l1 + " , avg:" + l1 * 1000L / l2 + " rows/s.");
+        }
         return l1;
     }
 

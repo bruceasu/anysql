@@ -2,12 +2,12 @@ package com.asql.oracle;
 
 import static com.asql.core.CMDType.ASQL_CANCEL;
 import static com.asql.core.CMDType.ASQL_COMMENT;
-import static com.asql.core.CMDType.ASQL_DBCOMMAND;
+import static com.asql.core.CMDType.ASQL_DB_COMMAND;
 import static com.asql.core.CMDType.ASQL_END;
 import static com.asql.core.CMDType.ASQL_EXIT;
 import static com.asql.core.CMDType.ASQL_MULTIPLE;
 import static com.asql.core.CMDType.ASQL_SINGLE;
-import static com.asql.core.CMDType.ASQL_SQLFILE;
+import static com.asql.core.CMDType.ASQL_SQL_FILE;
 import static com.asql.core.CMDType.MULTI_COMMENT_END;
 import static com.asql.core.CMDType.MULTI_COMMENT_START;
 import static com.asql.core.CMDType.NULL_COMMAND;
@@ -96,52 +96,52 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
         invokers.put(SQL_BLOCK, new SQLInvoker(this));
         invokers.put(SQL_SCRIPT, new ScriptInvoker(this));
         invokers.put(SQL_CALL, new CallInvoker(this));
-        invokers.put(ASQL_SQLFILE, new SQLFileInvoker(this));
-        invokers.put(ASQL_DBCOMMAND, new DBCommandInvoker(this));
+        invokers.put(ASQL_SQL_FILE, new SQLFileInvoker(this));
+        invokers.put(ASQL_DB_COMMAND, new DBCommandInvoker(this));
     }
     @Override
-    public final boolean execute(Command paramCommand) {
-        if (paramCommand == null) {
+    public final boolean execute(Command cmd) {
+        if (cmd == null) {
             out.println("No command to execute.");
             return true;
         }
-        switch (paramCommand.TYPE1) {
+        switch (cmd.TYPE1) {
             case SQL_QUERY:
             case SQL_DML:
             case SQL_DDL:
             case SQL_BLOCK:
                 if (checkNotConnected()) return true;
-                invokers.get(SQL_QUERY).invoke(paramCommand);
-                lastcommand = paramCommand;
+                invokers.get(SQL_QUERY).invoke(cmd);
+                lastcommand = cmd;
                 break;
             case SQL_SCRIPT:
                 if (checkNotConnected()) return true;
-                invokers.get(SQL_SCRIPT).invoke(paramCommand);
-                lastcommand = paramCommand;
+                invokers.get(SQL_SCRIPT).invoke(cmd);
+                lastcommand = cmd;
                 break;
             case ASQL_END:
                 execute(lastcommand);
                 break;
             case SQL_CALL:
                 if (checkNotConnected()) return true;
-                invokers.get(SQL_CALL).invoke(paramCommand);
+                invokers.get(SQL_CALL).invoke(cmd);
                 break;
-            case ASQL_SQLFILE:
+            case ASQL_SQL_FILE:
                 if (checkNotConnected()) return true;
-                boolean x =invokers.get(ASQL_SQLFILE).invoke(paramCommand);
+                boolean x =invokers.get(ASQL_SQL_FILE).invoke(cmd);
                 if (!x) {
                     return x;
                 }
                 break;
             case ASQL_MULTIPLE:
-                invokers.get(ASQL_MULTIPLE).invoke(paramCommand);
+                invokers.get(ASQL_MULTIPLE).invoke(cmd);
                 break;
-            case ASQL_DBCOMMAND:
-                Boolean x1 =   invokers.get(ASQL_DBCOMMAND).invoke(paramCommand);
+            case ASQL_DB_COMMAND:
+                Boolean x1 =   invokers.get(ASQL_DB_COMMAND).invoke(cmd);
                 if (x1 != null) return x1;
                 break;
             case ASQL_SINGLE:
-                invokers.get(ASQL_SINGLE).invoke(paramCommand);
+                invokers.get(ASQL_SINGLE).invoke(cmd);
             case ASQL_EXIT:
             case ASQL_CANCEL:
             case UNKNOWN_COMMAND:
@@ -149,6 +149,7 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
             case NULL_COMMAND:
             case MULTI_COMMENT_START:
             case MULTI_COMMENT_END:
+        default:
         }
         return true;
     }
@@ -200,13 +201,13 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
     }
 
     @Override
-    public int fetch(ResultSet paramResultSet, DBRowCache paramDBRowCache)
+    public int fetch(ResultSet rs, DBRowCache rowCache)
             throws SQLException {
-        return fetch(paramResultSet, paramDBRowCache, 100);
+        return fetch(rs, rowCache, 100);
     }
 
     @Override
-    public int fetch(ResultSet paramResultSet, DBRowCache paramDBRowCache, int paramInt)
+    public int fetch(ResultSet rs, DBRowCache rowCache, int size)
             throws SQLException {
         int i = 0;
         int j = 0;
@@ -215,22 +216,34 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
         char[] arrayOfChar1 = new char[4096];
         byte[] arrayOfByte2 = new byte[65536];
         char[] arrayOfChar2 = new char[65536];
-        int columnCount = paramDBRowCache.getColumnCount();
-        if (columnCount == 0) {
-            setColumnInfoes(paramResultSet, paramDBRowCache);
+        if (rowCache.getColumnCount() == 0) {
+            ResultSetMetaData metaData = rs.getMetaData();
+            for (i = 1; i <=  metaData.getColumnCount(); i++) {
+                String columnName = metaData.getColumnName(i);
+                if ( columnName != null) {
+                    if (rowCache.findColumn(columnName) == 0) {
+                        rowCache.addColumn(columnName, metaData.getColumnType(i));
+                    } else {
+                        for (j = 1; rowCache.findColumn(columnName + "_" + j) != 0; j++)
+                            ;
+                        rowCache.addColumn(columnName + "_" + j,  metaData.getColumnType(i));
+                    }
+                } else {
+                    for (j = 1; rowCache.findColumn("NULL" + j) != 0; j++) ;
+                    rowCache.addColumn("NULL" + j, metaData.getColumnType(i));
+                }
+            }
         }
-
-        columnCount = paramDBRowCache.getColumnCount();
-        if (columnCount == 0)
+        if (rowCache.getColumnCount() == 0)
             return 0;
         Object[] arrayOfObject;
         Object localObject2;
-        for (i = paramDBRowCache.getRowCount(); (i < paramInt) && (paramResultSet.next()); i = paramDBRowCache.appendRow(arrayOfObject)) {
-            arrayOfObject = new Object[columnCount];
-//            for (int kk = 1; kk <= paramDBRowCache.getColumnCount();kk++) {
-//                System.out.println("paramDBRowCache.getColumnType("+kk+") = " + paramDBRowCache.getColumnType(kk));
-//            }
-            for (j = 1; j <= columnCount; j++) {
+        for (i = rowCache.getRowCount(); (i < size) && (rs.next()); i = rowCache.appendRow(arrayOfObject)) {
+            arrayOfObject = new Object[rowCache.getColumnCount()];
+            for (int kk = 1; kk <= rowCache.getColumnCount();kk++) {
+                System.out.println("paramDBRowCache.getColumnType("+kk+") = " + rowCache.getColumnType(kk));
+            }
+            for (j = 1; j <= rowCache.getColumnCount(); j++) {
 //                System.out.println("j = " + j);
 //                System.out.println("paramResultSet = " + paramResultSet);
 //                System.out.println("paramDBRowCache.getColumnType(j) = " + paramDBRowCache.getColumnType(j));
@@ -239,9 +252,9 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
                 int m;
                 Object localObject3;
                 Object localObject4;
-                switch (paramDBRowCache.getColumnType(j)) {
+                switch (rowCache.getColumnType(j)) {
                     case -1:
-                        localObject2 = paramResultSet.getCharacterStream(j);
+                        localObject2 = rs.getCharacterStream(j);
                         if (localObject2 == null)
                             break;
                         try {
@@ -252,7 +265,7 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
                         } catch (IOException localIOException1) {
                         }
                     case -4:
-                        InputStream localInputStream1 = paramResultSet.getBinaryStream(j);
+                        InputStream localInputStream1 = rs.getBinaryStream(j);
                         if (localInputStream1 == null)
                             break;
                         try {
@@ -263,7 +276,7 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
                         } catch (IOException localIOException2) {
                         }
                     case 2005:
-                        Clob localClob = paramResultSet.getClob(j);
+                        Clob localClob = rs.getClob(j);
                         if (localClob == null)
                             break;
                         localObject3 = localClob.getCharacterStream();
@@ -277,7 +290,7 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
                         } catch (IOException localIOException3) {
                         }
                     case 2004:
-                        localObject3 = paramResultSet.getBlob(j);
+                        localObject3 = rs.getBlob(j);
                         if (localObject3 == null)
                             break;
                         localObject4 = ((Blob) localObject3).getBinaryStream();
@@ -292,12 +305,12 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
                         }
                     case 1:
                     case 12:
-                        localObject4 = paramResultSet.getCharacterStream(j);
+                        localObject4 = rs.getCharacterStream(j);
                         if (localObject4 == null)
                             break;
                         try {
                             m = ((Reader) localObject4).read(arrayOfChar1);
-                            if (paramDBRowCache.getColumnType(j) == 1)
+                            if (rowCache.getColumnType(j) == 1)
                                 while ((m > 0) && (arrayOfChar1[(m - 1)] == ' '))
                                     m--;
                             if (m > 0)
@@ -307,12 +320,12 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
                         }
                     case -3:
                     case -2:
-                        InputStream localInputStream2 = paramResultSet.getAsciiStream(j);
+                        InputStream localInputStream2 = rs.getAsciiStream(j);
                         if (localInputStream2 == null)
                             break;
                         try {
                             m = localInputStream2.read(arrayOfByte1);
-                            if (paramDBRowCache.getColumnType(j) == -2)
+                            if (rowCache.getColumnType(j) == -2)
                                 while ((m > 0) && (arrayOfByte1[(m - 1)] == 32))
                                     m--;
                             if (m > 0)
@@ -322,18 +335,18 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
                         }
                     case 91:
                         try {
-                            localObject1 = paramResultSet.getTimestamp(j);
+                            localObject1 = rs.getTimestamp(j);
                         } catch (Throwable e) {}
                         break;
                     case 92:
                         try {
-                            localObject1 = paramResultSet.getTime(j);
+                            localObject1 = rs.getTime(j);
                         } catch (Throwable e) {}
                         break;
                     case -102:
                     case -101:
                     case 93:
-                        localObject1 = paramResultSet.getTimestamp(j);
+                        localObject1 = rs.getTimestamp(j);
                         break;
                     case -7:
                     case -6:
@@ -346,7 +359,7 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
                     case 7:
                     case 8:
                     case 16:
-                        localObject1 = paramResultSet.getObject(j);
+                        localObject1 = rs.getObject(j);
                         break;
                     case -14:
                     case -13:
@@ -362,33 +375,12 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
                         localObject1 = "N/A";
                         break;
                     default:
-                        localObject1 = paramResultSet.getString(j);
+                        localObject1 = rs.getString(j);
                 }
                 arrayOfObject[(j - 1)] = localObject1;
             }
         }
         return i;
-    }
-
-    private void setColumnInfoes(ResultSet paramResultSet, DBRowCache paramDBRowCache) throws SQLException {
-        int i;
-        int j;
-        ResultSetMetaData metaData = paramResultSet.getMetaData();
-        for (i = 1; i <=  metaData.getColumnCount(); i++) {
-            String columnName = metaData.getColumnName(i);
-            if ( columnName != null) {
-                if (paramDBRowCache.findColumn(columnName) == 0) {
-                    paramDBRowCache.addColumn(columnName, metaData.getColumnType(i));
-                } else {
-                    for (j = 1; paramDBRowCache.findColumn(columnName + "_" + j) != 0; j++)
-                        ;
-                    paramDBRowCache.addColumn(columnName + "_" + j,  metaData.getColumnType(i));
-                }
-            } else {
-                for (j = 1; paramDBRowCache.findColumn("NULL" + j) != 0; j++) ;
-                paramDBRowCache.addColumn("NULL" + j, metaData.getColumnType(i));
-            }
-        }
     }
 
     public void loadTNSNames(String path) {
@@ -630,8 +622,9 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
             }
             statement = prepareScript(database, "EXPLAIN PLAN SET STATEMENT_ID='" + str + "' FOR " + paramString, sysVariable);
             statement.stmt.execute();
-            if (traceSqls[7] != null)
+            if (traceSqls[7] != null) {
                 rowCache = executeQuery(traceSqls[7], sysVariable, 1000);
+            }
             if (traceSqls[6] != null) {
                 traceSqls[6].bind(sysVariable);
                 traceSqls[6].stmt.execute();
@@ -660,18 +653,7 @@ public class OracleSQLExecutor extends DefaultSQLExecutor {
         }
     }
 
-    public void printCost(long end, long start) {
-        if (timing)
-            out.println("Execute time: " + DBOperation.getElapsed(end - start));
-    }
 
-    public boolean checkNotConnected() {
-        if (!isConnected()) {
-            out.println("Database not connected.");
-            return true;
-        }
-        return false;
-    }
 
     public void showDBRowCache(DBRowCache paramDBRowCache, boolean paramBoolean) {
         paramDBRowCache.getWidth(false);

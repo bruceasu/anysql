@@ -1162,7 +1162,7 @@ public class OracleORAFunction {
                     + "GROUP BY day, hour  "
                     + ") A"};
 
-    public static final void main(String[] paramArrayOfString) {
+    public static final void main(String[] args) {
         System.out.println(getCount());
     }
 
@@ -1171,9 +1171,11 @@ public class OracleORAFunction {
     }
 
     public static final String getORASQL(int paramInt) {
-        if ((paramInt >= 0) && (paramInt < COMMANDSQL.length))
+        if ((paramInt >= 0) && (paramInt < COMMANDSQL.length)) {
             return COMMANDSQL[paramInt];
-        return null;
+        } else {
+            return null;
+        }
     }
     
     public static void oraUsage(CommandLog log) {

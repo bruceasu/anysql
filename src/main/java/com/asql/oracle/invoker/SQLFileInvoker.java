@@ -40,7 +40,9 @@ import java.io.FileInputStream;
 import java.io.IOException;
 
 /**
- * Created by suk on 2017/8/13.
+ *
+ * @author suk
+ * @date 2017/8/13
  */
 public class SQLFileInvoker implements ModuleInvoker {
     OracleSQLExecutor executor;
@@ -57,7 +59,7 @@ public class SQLFileInvoker implements ModuleInvoker {
             int i = cmdType.startsWith(cmdType.getSQLFile(), cmd.COMMAND);
             switch (i) {
                 case ORACLE_SQLFILE_0:
-                    return procRun2("@@ " + cmd.COMMAND.trim().substring(2), cmd.WORKINGDIR);
+                    return procRun2("@@ " + cmd.COMMAND.trim().substring(2), cmd.WORKING_DIR);
                 case ORACLE_SQLFILE_1:
                     return executor.procRun1("@ " + cmd.COMMAND.trim().substring(1));
             }
