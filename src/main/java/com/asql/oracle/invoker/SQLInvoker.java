@@ -40,7 +40,7 @@ public class SQLInvoker implements ModuleInvoker {
     public SQLInvoker(OracleSQLExecutor executor) {
         this.executor = executor;
         out = executor.getCommandLog();
-        cmdType = executor.getCommandType();
+        cmdType = executor.getCmdType();
     }
 
     @Override
@@ -49,7 +49,7 @@ public class SQLInvoker implements ModuleInvoker {
         DBRowCache rowCacheOfSessionStats;
         long l1;
         long l2;
-        executor.getObjectFromCommand(cmd.COMMAND.substring(0, Math.min(100, cmd.COMMAND.length() - 1)));
+        executor.getObjectFromCommand(cmd.command.substring(0, Math.min(100, cmd.command.length() - 1)));
         out.println();
         rowCacheOfSessionWait = executor.getDbRowCacheOfSessionWait();
         rowCacheOfSessionStats = executor.getDbRowCacheOfSessionStats();

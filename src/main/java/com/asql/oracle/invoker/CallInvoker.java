@@ -41,7 +41,7 @@ public class CallInvoker implements ModuleInvoker {
     public CallInvoker(OracleSQLExecutor executor) {
         this.executor = executor;
         out = executor.getCommandLog();
-        cmdType = executor.getCommandType();
+        cmdType = executor.getCmdType();
     }
 
     @Override
@@ -54,7 +54,7 @@ public class CallInvoker implements ModuleInvoker {
         rowCacheOfSessionWait = executor.getDbRowCacheOfSessionWait();
         rowCacheOfSessionStats = executor.getDbRowCacheOfSessionStats();
         l1 = System.currentTimeMillis();
-        executor.executeCall(executor.database, new Command(cmd.TYPE1, cmd.TYPE2, executor.skipWord(cmd.COMMAND, 1)),
+        executor.executeCall(executor.database, new Command(cmd.type1, cmd.type2, executor.skipWord(cmd.command, 1)),
                 executor.sysVariable, out);
         l2 = System.currentTimeMillis();
         executor.printCost(l2, l1);

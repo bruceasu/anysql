@@ -1,7 +1,7 @@
 package com.asql.core;
 
 import com.asql.core.util.DateOperator;
-import com.asql.core.util.JavaVM;
+import com.asql.core.util.JavaVm;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -89,9 +89,9 @@ public final class VariableTable {
             if (paramString.equalsIgnoreCase("SYS_TIME"))
                 return new Time(System.currentTimeMillis());
             if (paramString.equalsIgnoreCase("JAVA_VERSION"))
-                return JavaVM.VERSION;
+                return JavaVm.VERSION;
             if (paramString.equalsIgnoreCase("FILE_ENCODING"))
-                return JavaVM.ENCODING;
+                return JavaVm.ENCODING;
             if (paramString.equalsIgnoreCase("SYS_DATETIME"))
                 return new Timestamp(System.currentTimeMillis());
             if (paramString.equalsIgnoreCase("NLS_DATE_FORMAT"))

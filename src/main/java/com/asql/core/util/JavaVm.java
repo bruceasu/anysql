@@ -2,7 +2,8 @@ package com.asql.core.util;
 
 import java.util.Properties;
 
-public final class JavaVM {
+public final class JavaVm
+{
   public static String VERSION = "1.3";
   public static int MAIN_VERSION = 1;
   public static int MINOR_VERSION = 3;
@@ -21,8 +22,8 @@ public final class JavaVM {
     OS_VERSION = localProperties.getProperty("os.version");
     FILE_SEPERATOR = localProperties.getProperty("file.separator");
     ENCODING = localProperties.getProperty("file.encoding");
-    MAIN_VERSION = Integer.valueOf(VERSION.substring(0, 1)).intValue();
-    MINOR_VERSION = Integer.valueOf(VERSION.substring(2, 3)).intValue();
+    MAIN_VERSION = Integer.parseInt(VERSION.substring(0, 1));
+    MINOR_VERSION = Integer.parseInt(VERSION.substring(2, 3));
     JAVA_HOME = localProperties.getProperty("java.home");
   }
 

@@ -7,7 +7,7 @@ import static java.sql.Types.*;
 
 import com.asql.core.*;
 import com.asql.core.log.CommandLog;
-import com.asql.core.util.JavaVM;
+import com.asql.core.util.JavaVm;
 import com.asql.core.util.TextUtils;
 import com.asql.mysql.MySqlSQLExecutor;
 import java.io.*;
@@ -23,7 +23,7 @@ public class MultipleInvoker implements ModuleInvoker
     {
         this.executor = executor;
         out = executor.getCommandLog();
-        cmdType = executor.getCommandType();
+        cmdType = executor.getCmdType();
         
     }
 
@@ -31,7 +31,7 @@ public class MultipleInvoker implements ModuleInvoker
     @Override
     public boolean invoke(Command cmd)
     {
-        int id = executor.getMultipleID(cmd.COMMAND);
+        int id = executor.getMultipleID(cmd.command);
         switch (id) {
         case ASQL_MULTIPLE_LOB:
             return executor.time(cmd, this::procLob);
@@ -104,7 +104,7 @@ public class MultipleInvoker implements ModuleInvoker
 
     private void procLobForExport(String query, String file)
     {
-        if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 3)) {
+        if ((JavaVm.MAIN_VERSION == 1) && (JavaVm.MINOR_VERSION < 3)) {
             out.println("Java VM 1.3 or above required to support this feature.");
             return;
         }
@@ -220,7 +220,7 @@ public class MultipleInvoker implements ModuleInvoker
     private void procLobForImport(String query, String file)
     {
         long l1 = 0L;
-        if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 4)) {
+        if ((JavaVm.MAIN_VERSION == 1) && (JavaVm.MINOR_VERSION < 4)) {
             out.println("Java VM 1.4 or above required to support this feature.");
             return;
         }
@@ -327,7 +327,7 @@ public class MultipleInvoker implements ModuleInvoker
         int i = TextUtils.getWords(cmdType.getASQLMultiple()[1]).size();
         String query = executor.skipWord(cmdLine, i);
         query = query.trim();
-        if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 3)) {
+        if ((JavaVm.MAIN_VERSION == 1) && (JavaVm.MINOR_VERSION < 3)) {
             out.println("Java VM 1.3 required to support this feature.");
             return FALSE;
         }
@@ -437,7 +437,7 @@ public class MultipleInvoker implements ModuleInvoker
         query = query.trim();
 
 
-        if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 3)) {
+        if ((JavaVm.MAIN_VERSION == 1) && (JavaVm.MINOR_VERSION < 3)) {
             out.println("Java VM 1.3 required to support this feature.");
             return FALSE;
         }
@@ -613,7 +613,7 @@ public class MultipleInvoker implements ModuleInvoker
         query = query.trim();
         char[] buffer = new char[8192];
         byte[] arrayOfByte = new byte[8192];
-        if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 4)) {
+        if ((JavaVm.MAIN_VERSION == 1) && (JavaVm.MINOR_VERSION < 4)) {
             out.println("Java VM 1.4 required to support this feature.");
             return FALSE;
         }

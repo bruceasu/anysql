@@ -7,6 +7,7 @@ import com.asql.core.DefaultSQLExecutor;
 import com.asql.core.log.CommandLog;
 import com.asql.mysql.MySqlSQLExecutor;
 import com.asql.oracle.OracleSQLExecutor;
+import com.asql.pgsql.PgSqlSQLExecutor;
 import com.asql.sybase.SybaseSQLExecutor;
 import java.io.IOException;
 
@@ -16,8 +17,8 @@ public class ASQL {
 
         /*proxy*/
         /*socks5*/
-        System.getProperties().setProperty("socksProxyHost", "localhost");
-        System.getProperties().setProperty("socksProxyPort", "1080");
+//        System.getProperties().setProperty("socksProxyHost", "localhost");
+//        System.getProperties().setProperty("socksProxyPort", "1080");
         /*http*/
 //        System.getProperties().setProperty("http.proxyHost", networkBean.getAddress());
 //        System.getProperties().setProperty("http.proxyPort", networkBean.getPort());
@@ -75,6 +76,8 @@ public class ASQL {
             sqlExecutor = new SybaseSQLExecutor();
         } else if ("MYSQL".equalsIgnoreCase(database)) {
             sqlExecutor = new MySqlSQLExecutor();
+        }else if ("PGSQL".equalsIgnoreCase(database)) {
+            sqlExecutor = new PgSqlSQLExecutor();
         } else {
             sqlExecutor = new OracleSQLExecutor();
         }

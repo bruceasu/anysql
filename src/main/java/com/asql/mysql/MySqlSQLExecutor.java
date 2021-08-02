@@ -1,7 +1,8 @@
 package com.asql.mysql;
 
 import static com.asql.core.CMDType.*;
-import static com.asql.mysql.MySqlCMDType.*;
+import static com.asql.mysql.MySqlCMDType.ASQL_SINGLE_SQLFILE_1;
+import static com.asql.mysql.MySqlCMDType.ASQL_SINGLE_SQLFILE_2;
 
 import com.asql.core.*;
 import com.asql.core.io.CommandReader;
@@ -9,20 +10,16 @@ import com.asql.core.io.DefaultCommandReader;
 import com.asql.core.io.InputCommandReader;
 import com.asql.core.log.CommandLog;
 import com.asql.core.log.DefaultCommandLog;
-import com.asql.core.log.OutputCommandLog;
 import com.asql.core.util.DateOperator;
-import com.asql.core.util.JavaVM;
 import com.asql.core.util.TextUtils;
-import com.asql.mysql.invoker.MultipleInvoker;
-import com.asql.mysql.invoker.SingleInvoker;
+import com.asql.mysql.invoker.*;
 import java.io.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Hashtable;
 import java.util.Map;
 
-public class MySqlSQLExecutor extends DefaultSQLExecutor
-{
+public class MySqlSQLExecutor extends DefaultSQLExecutor {
 
     private CMDType       _cmdtype    = null;
     private CommandLog    _stdout     = null;
@@ -31,24 +28,23 @@ public class MySqlSQLExecutor extends DefaultSQLExecutor
     private Command       lastcommand = null;
 
     private Map<Integer, ModuleInvoker> invokers = new Hashtable<>();
-    public MySqlSQLExecutor()
-    {
+
+    public MySqlSQLExecutor() {
         super(new MySqlCMDType());
         this._cmdtype = new MySqlCMDType();
-        this._stdout = new DefaultCommandLog(this);
-        this._stdin = new DefaultCommandReader();
+        this._stdout  = new DefaultCommandLog(this);
+        this._stdin   = new DefaultCommandReader();
         setShowComplete(false);
         setFetchSize(12);
 
         init();
     }
 
-    public MySqlSQLExecutor(CommandReader reader, CommandLog log)
-    {
+    public MySqlSQLExecutor(CommandReader reader, CommandLog log) {
         super(new MySqlCMDType(), reader, log);
         this._cmdtype = new MySqlCMDType();
-        this._stdout = log;
-        this._stdin = reader;
+        this._stdout  = log;
+        this._stdin   = reader;
         setShowComplete(false);
         setFetchSize(12);
 
@@ -56,15 +52,22 @@ public class MySqlSQLExecutor extends DefaultSQLExecutor
     }
 
 
-    private void init()
-    {
+    private void init() {
         invokers.put(ASQL_MULTIPLE, new MultipleInvoker(this));
         invokers.put(ASQL_SINGLE, new SingleInvoker(this));
+        invokers.put(SQL_QUERY, new SQLInvoker(this));
+        invokers.put(SQL_DML, new SQLInvoker(this));
+        invokers.put(SQL_DDL, new SQLInvoker(this));
+        invokers.put(SQL_BLOCK, new SQLInvoker(this));
+        invokers.put(SQL_CALL, new CallInvoker(this));
+        invokers.put(SQL_SCRIPT, new ScriptInvoker(this));
+        invokers.put(ASQL_SQL_FILE, new SQLFileInvoker(this));
+
+
     }
 
     @Override
-    public final boolean execute(Command cmd)
-    {
+    public final boolean execute(Command cmd) {
 
         if (cmd == null) {
             this._stdout.println("No command to execute.");
@@ -72,153 +75,55 @@ public class MySqlSQLExecutor extends DefaultSQLExecutor
         }
         long startTime;
         long endTime = 0L;
-        switch (cmd.TYPE1) {
-        case SQL_QUERY:
-        case SQL_DML:
-        case SQL_DDL:
-        case SQL_BLOCK:
-            if (!isConnected()) {
-                this._stdout.println("Database not connected.");
-                return true;
-            }
-            invokeQuery(cmd);
-            this.lastcommand = cmd;
-            break;
-        case SQL_SCRIPT:
-            if (!isConnected()) {
-                this._stdout.println("Database not connected.");
-                return true;
-            }
-            invokeScript(cmd);
-            this.lastcommand = cmd;
-            break;
-        case ASQL_END:
-            execute(this.lastcommand);
-            break;
-        case SQL_CALL:
-            if (!isConnected()) {
-                this._stdout.println("Database not connected.");
-                return true;
-            }
-            invokeCall(cmd);
-            break;
-        case ASQL_SQL_FILE:
-            Boolean x = invokeFile(cmd);
-            if (x != null) {
-                return x;
-            }
-            break;
-        case ASQL_MULTIPLE:
-            return invokers.get(ASQL_MULTIPLE).invoke(cmd);
-        case ASQL_SINGLE:
-            return invokers.get(ASQL_SINGLE).invoke(cmd);
-        case ASQL_EXIT:
-        case ASQL_CANCEL:
-        case UNKNOWN_COMMAND:
-        case ASQL_COMMENT:
-        case NULL_COMMAND:
-        case MULTI_COMMENT_START:
-        case MULTI_COMMENT_END:
-        default:
+        switch (cmd.type1) {
+            case SQL_QUERY:
+            case SQL_DML:
+            case SQL_DDL:
+            case SQL_BLOCK:
+                if (checkNotConnected()) { return true;}
+                invokers.get(SQL_QUERY).invoke(cmd);
+                this.lastcommand = cmd;
+                break;
+            case SQL_SCRIPT:
+                if (checkNotConnected()) { return true; }
+                invokers.get(SQL_SCRIPT).invoke(cmd);
+                this.lastcommand = cmd;
+                break;
+            case ASQL_END:
+                execute(this.lastcommand);
+                break;
+            case SQL_CALL:
+                if (checkNotConnected()) { return true; }
+                invokers.get(SQL_CALL).invoke(cmd);
+                break;
+            case ASQL_SQL_FILE:
+                invokers.get(ASQL_MULTIPLE).invoke(cmd);
+                break;
+            case ASQL_MULTIPLE:
+                return invokers.get(ASQL_MULTIPLE).invoke(cmd);
+            case ASQL_SINGLE:
+                return invokers.get(ASQL_SINGLE).invoke(cmd);
+            case ASQL_EXIT:
+            case ASQL_CANCEL:
+            case UNKNOWN_COMMAND:
+            case ASQL_COMMENT:
+            case NULL_COMMAND:
+            case MULTI_COMMENT_START:
+            case MULTI_COMMENT_END:
+            default:
         }
         return true;
     }
 
 
-
-    private Boolean invokeFile(Command cmd)
-    {
-        int i = this._cmdtype.startsWith(this._cmdtype.getSQLFile(), cmd.COMMAND);
-        switch (i) {
-        case ASQL_SINGLE_SQLFILE_1:
-            if (!procRun2("@@ " + cmd.COMMAND.trim().substring(2))) {
-                break;
-            }
-            return false;
-        case ASQL_SINGLE_SQLFILE_2:
-            if (!procRun2("@ " + cmd.COMMAND.trim().substring(1))) {
-                break;
-            }
-            return false;
-        default:
-        }
-        return null;
-    }
-
-    private void invokeCall(Command cmd)
-    {
-        long startTime;
-        long endTime;
-        startTime = System.currentTimeMillis();
-        executeCall(this.database, new Command(cmd.TYPE1, cmd.TYPE2, skipWord(cmd.COMMAND, 1)),
-                this.sysVariable, this._stdout);
-        endTime = System.currentTimeMillis();
-        if (!this.timing) {
-            return;
-        }
-        this._stdout.println("Execute time: " + DBOperation.getElapsed(endTime - startTime));
-    }
-
-    private void invokeScript(Command cmd)
-    {
-        long startTime;
-        long endTime;
-        startTime = System.currentTimeMillis();
-        executeScript(this.database, cmd, this.sysVariable, this._stdout);
-        endTime = System.currentTimeMillis();
-        if (this.timing) {
-            this._stdout.println(
-                    " Execute time: " + DBOperation.getElapsed(endTime - startTime));
-        }
-    }
-
-    private void invokeQuery(Command cmd)
-    {
-        long startTime;
-        long endTime;
-        startTime = System.currentTimeMillis();
-        executeSQL(this.database, cmd, this.sysVariable, this._stdout);
-        endTime = System.currentTimeMillis();
-        if (this.timing) {
-            this._stdout.println(
-                    "Execute time: " + DBOperation.getElapsed(endTime - startTime));
-        }
-    }
-
-
-
-    private boolean procRun2(String paramString)
-    {
-        int i = TextUtils.getWords(this._cmdtype.getASQLMultiple()[0]).size();
-        String str1 = skipWord(paramString, i);
-        if (str1.trim().length() == 0) {
-            this._stdout.println("Usage: @[@] file");
-            return false;
-        }
-        String str2 = this.sysVariable.parseString(str1.trim());
-        try {
-            FileInputStream localFileInputStream = new FileInputStream(str2);
-            Command localCommand = run(new InputCommandReader(localFileInputStream));
-            return localCommand.COMMAND != null;
-        } catch (IOException localIOException) {
-            this._stdout.print(localIOException);
-        }
-        return false;
-    }
-
-
-
     @Override
-    public void procUnknownCommand(Command paramCommand)
-    {
+    public void procUnknownCommand(Command paramCommand) {
         this._stdout.println("Unknown command!");
     }
 
 
-
     @Override
-    public void showVersion()
-    {
+    public void showVersion() {
         this._stdout.println();
         this._stdout.println(" AnySQL for MySQL, version 1.0.1 -- " + DateOperator.getDay(
                 "yyyy-MM-dd HH:mm:ss"));
@@ -233,24 +138,23 @@ public class MySqlSQLExecutor extends DefaultSQLExecutor
                           ResultSet paramResultSet,
                           String paramString1,
                           String paramString2,
-                          boolean paramBoolean) throws SQLException, IOException
-    {
-        long l1 = 0L;
-        String str1 = null;
-        int i = 0;
-        int j = 32768;
-        byte[] arrayOfByte1 = new byte[8192];
-        char[] arrayOfChar1 = new char[4096];
-        byte[] arrayOfByte2 = new byte[65536];
-        char[] arrayOfChar2 = new char[65536];
-        long l2 = System.currentTimeMillis();
+                          boolean paramBoolean) throws SQLException, IOException {
+        long              l1                     = 0L;
+        String            str1                   = null;
+        int               i                      = 0;
+        int               j                      = 32768;
+        byte[]            arrayOfByte1           = new byte[8192];
+        char[]            arrayOfChar1           = new char[4096];
+        byte[]            arrayOfByte2           = new byte[65536];
+        char[]            arrayOfChar2           = new char[65536];
+        long              l2                     = System.currentTimeMillis();
         ResultSetMetaData localResultSetMetaData = paramResultSet.getMetaData();
-        int k = localResultSetMetaData.getColumnCount();
-        int[] arrayOfInt = new int[k];
-        SimpleDateFormat localSimpleDateFormat1 = new SimpleDateFormat("yyyy-MM-dd");
-        SimpleDateFormat localSimpleDateFormat2 = new SimpleDateFormat("HH:mm:ss");
-        SimpleDateFormat localSimpleDateFormat3 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        int m = 0;
+        int               k                      = localResultSetMetaData.getColumnCount();
+        int[]             arrayOfInt             = new int[k];
+        SimpleDateFormat  localSimpleDateFormat1 = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat  localSimpleDateFormat2 = new SimpleDateFormat("HH:mm:ss");
+        SimpleDateFormat  localSimpleDateFormat3 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        int               m                      = 0;
         for (m = 0; m < k; m++) {
             arrayOfInt[m] = localResultSetMetaData.getColumnType(m + 1);
             if (!paramBoolean) {
@@ -274,140 +178,140 @@ public class MySqlSQLExecutor extends DefaultSQLExecutor
                 Object localObject1;
                 Object localObject2;
                 switch (arrayOfInt[(m - 1)]) {
-                case -1:
-                    Reader localReader = paramResultSet.getCharacterStream(m);
-                    if (localReader == null) {
-                        break;
-                    }
-                    try {
-                        i = localReader.read(arrayOfChar2);
-                        if (i > 0) {
-                            paramBufferedWriter.write(arrayOfChar2, 0, i);
+                    case -1:
+                        Reader localReader = paramResultSet.getCharacterStream(m);
+                        if (localReader == null) {
+                            break;
                         }
-                        localReader.close();
-                    } catch (IOException localIOException1) {
-                    }
-                case -4:
-                    InputStream localInputStream1 = paramResultSet.getBinaryStream(m);
-                    if (localInputStream1 == null) {
-                        break;
-                    }
-                    try {
-                        i = localInputStream1.read(arrayOfByte2);
-                        if (i > 0) {
-                            paramBufferedWriter.write(new String(arrayOfByte2, 0, i));
-                        }
-                        localInputStream1.close();
-                    } catch (IOException localIOException2) {
-                    }
-                case 2005:
-                    Clob localClob = paramResultSet.getClob(m);
-                    if (localClob == null) {
-                        break;
-                    }
-                    localObject1 = localClob.getCharacterStream();
-                    if (localObject1 == null) {
-                        break;
-                    }
-                    try {
-                        i = ((Reader) localObject1).read(arrayOfChar2);
-                        if (i > 0) {
-                            paramBufferedWriter.write(arrayOfChar2, 0, i);
-                        }
-                        ((Reader) localObject1).close();
-                    } catch (IOException localIOException3) {
-                    }
-                case 2004:
-                    localObject1 = paramResultSet.getBlob(m);
-                    if (localObject1 == null) {
-                        break;
-                    }
-                    localObject2 = ((Blob) localObject1).getBinaryStream();
-                    if (localObject2 == null) {
-                        break;
-                    }
-                    try {
-                        i = ((InputStream) localObject2).read(arrayOfByte2);
-                        if (i > 0) {
-                            paramBufferedWriter.write(new String(arrayOfByte2, 0, i));
-                        }
-                        ((InputStream) localObject2).close();
-                    } catch (IOException localIOException4) {
-                    }
-                case 1:
-                case 12:
-                    localObject2 = paramResultSet.getCharacterStream(m);
-                    if (localObject2 == null) {
-                        break;
-                    }
-                    try {
-                        i = ((Reader) localObject2).read(arrayOfChar1);
-                        if (arrayOfInt[(m - 1)] == 1) {
-                            while ((i > 0) && (arrayOfChar1[(i - 1)] == ' ')) {
-                                i--;
+                        try {
+                            i = localReader.read(arrayOfChar2);
+                            if (i > 0) {
+                                paramBufferedWriter.write(arrayOfChar2, 0, i);
                             }
+                            localReader.close();
+                        } catch (IOException localIOException1) {
                         }
-                        if (i > 0) {
-                            paramBufferedWriter.write(arrayOfChar1, 0, i);
+                    case -4:
+                        InputStream localInputStream1 = paramResultSet.getBinaryStream(m);
+                        if (localInputStream1 == null) {
+                            break;
                         }
-                        ((Reader) localObject2).close();
-                    } catch (IOException localIOException5) {
-                    }
-                case -3:
-                case -2:
-                    InputStream localInputStream2 = paramResultSet.getAsciiStream(m);
-                    if (localInputStream2 == null) {
-                        break;
-                    }
-                    try {
-                        i = localInputStream2.read(arrayOfByte1);
-                        if (arrayOfInt[(m - 1)] == -2) {
-                            while ((i > 0) && (arrayOfByte1[(i - 1)] == 32)) {
-                                i--;
+                        try {
+                            i = localInputStream1.read(arrayOfByte2);
+                            if (i > 0) {
+                                paramBufferedWriter.write(new String(arrayOfByte2, 0, i));
                             }
+                            localInputStream1.close();
+                        } catch (IOException localIOException2) {
                         }
-                        if (i > 0) {
-                            paramBufferedWriter.write(new String(arrayOfByte1, 0, i));
+                    case 2005:
+                        Clob localClob = paramResultSet.getClob(m);
+                        if (localClob == null) {
+                            break;
                         }
-                        localInputStream2.close();
-                    } catch (IOException localIOException6) {
-                    }
-                case 91:
-                    Date localDate = paramResultSet.getDate(m);
-                    if (localDate == null) {
+                        localObject1 = localClob.getCharacterStream();
+                        if (localObject1 == null) {
+                            break;
+                        }
+                        try {
+                            i = ((Reader) localObject1).read(arrayOfChar2);
+                            if (i > 0) {
+                                paramBufferedWriter.write(arrayOfChar2, 0, i);
+                            }
+                            ((Reader) localObject1).close();
+                        } catch (IOException localIOException3) {
+                        }
+                    case 2004:
+                        localObject1 = paramResultSet.getBlob(m);
+                        if (localObject1 == null) {
+                            break;
+                        }
+                        localObject2 = ((Blob) localObject1).getBinaryStream();
+                        if (localObject2 == null) {
+                            break;
+                        }
+                        try {
+                            i = ((InputStream) localObject2).read(arrayOfByte2);
+                            if (i > 0) {
+                                paramBufferedWriter.write(new String(arrayOfByte2, 0, i));
+                            }
+                            ((InputStream) localObject2).close();
+                        } catch (IOException localIOException4) {
+                        }
+                    case 1:
+                    case 12:
+                        localObject2 = paramResultSet.getCharacterStream(m);
+                        if (localObject2 == null) {
+                            break;
+                        }
+                        try {
+                            i = ((Reader) localObject2).read(arrayOfChar1);
+                            if (arrayOfInt[(m - 1)] == 1) {
+                                while ((i > 0) && (arrayOfChar1[(i - 1)] == ' ')) {
+                                    i--;
+                                }
+                            }
+                            if (i > 0) {
+                                paramBufferedWriter.write(arrayOfChar1, 0, i);
+                            }
+                            ((Reader) localObject2).close();
+                        } catch (IOException localIOException5) {
+                        }
+                    case -3:
+                    case -2:
+                        InputStream localInputStream2 = paramResultSet.getAsciiStream(m);
+                        if (localInputStream2 == null) {
+                            break;
+                        }
+                        try {
+                            i = localInputStream2.read(arrayOfByte1);
+                            if (arrayOfInt[(m - 1)] == -2) {
+                                while ((i > 0) && (arrayOfByte1[(i - 1)] == 32)) {
+                                    i--;
+                                }
+                            }
+                            if (i > 0) {
+                                paramBufferedWriter.write(new String(arrayOfByte1, 0, i));
+                            }
+                            localInputStream2.close();
+                        } catch (IOException localIOException6) {
+                        }
+                    case 91:
+                        Date localDate = paramResultSet.getDate(m);
+                        if (localDate == null) {
+                            break;
+                        }
+                        paramBufferedWriter.write(localSimpleDateFormat1.format(localDate));
                         break;
-                    }
-                    paramBufferedWriter.write(localSimpleDateFormat1.format(localDate));
-                    break;
-                case 92:
-                    Time localTime = paramResultSet.getTime(m);
-                    if (localTime == null) {
+                    case 92:
+                        Time localTime = paramResultSet.getTime(m);
+                        if (localTime == null) {
+                            break;
+                        }
+                        paramBufferedWriter.write(localSimpleDateFormat2.format(localTime));
                         break;
-                    }
-                    paramBufferedWriter.write(localSimpleDateFormat2.format(localTime));
-                    break;
-                case 93:
-                    Timestamp localTimestamp = paramResultSet.getTimestamp(m);
-                    if (localTimestamp == null) {
+                    case 93:
+                        Timestamp localTimestamp = paramResultSet.getTimestamp(m);
+                        if (localTimestamp == null) {
+                            break;
+                        }
+                        paramBufferedWriter.write(localSimpleDateFormat3.format(localTimestamp));
                         break;
-                    }
-                    paramBufferedWriter.write(localSimpleDateFormat3.format(localTimestamp));
-                    break;
-                case 0:
-                case 70:
-                case 1111:
-                case 2000:
-                case 2001:
-                case 2002:
-                case 2003:
-                case 2006:
-                    break;
-                default:
-                    String str2 = paramResultSet.getString(m);
-                    if (str2 == null) {
+                    case 0:
+                    case 70:
+                    case 1111:
+                    case 2000:
+                    case 2001:
+                    case 2002:
+                    case 2003:
+                    case 2006:
                         break;
-                    }
-                    paramBufferedWriter.write(str2);
+                    default:
+                        String str2 = paramResultSet.getString(m);
+                        if (str2 == null) {
+                            break;
+                        }
+                        paramBufferedWriter.write(str2);
                 }
                 if (m < k) {
                     paramBufferedWriter.write(paramString1);
@@ -431,18 +335,16 @@ public class MySqlSQLExecutor extends DefaultSQLExecutor
     }
 
     @Override
-    public int fetch(ResultSet rs, DBRowCache rowCache) throws SQLException
-    {
+    public int fetch(ResultSet rs, DBRowCache rowCache) throws SQLException {
         return fetch(rs, rowCache, 100);
     }
 
     @Override
     public int fetch(ResultSet rs, DBRowCache rowCache, int size)
-    throws SQLException
-    {
-        int i = 0;
-        int j = 0;
-        int k = 0;
+    throws SQLException {
+        int    i            = 0;
+        int    j            = 0;
+        int    k            = 0;
         byte[] arrayOfByte1 = new byte[8192];
         char[] arrayOfChar1 = new char[4096];
         byte[] arrayOfByte2 = new byte[65536];
@@ -485,153 +387,153 @@ public class MySqlSQLExecutor extends DefaultSQLExecutor
             arrayOfObject = new Object[rowCache.getColumnCount()];
             for (j = 1; j <= rowCache.getColumnCount(); j++) {
                 Object localObject1 = null;
-                int m;
+                int    m;
                 Object localObject3;
                 Object localObject4;
                 switch (rowCache.getColumnType(j)) {
-                case -1:
-                    localObject2 = rs.getCharacterStream(j);
-                    if (localObject2 == null) {
-                        break;
-                    }
-                    try {
-                        m = ((Reader) localObject2).read(arrayOfChar2);
-                        if (m > 0) {
-                            localObject1 = String.valueOf(arrayOfChar2, 0, m);
+                    case -1:
+                        localObject2 = rs.getCharacterStream(j);
+                        if (localObject2 == null) {
+                            break;
                         }
-                        ((Reader) localObject2).close();
-                    } catch (IOException localIOException1) {
-                    }
-                    break;
-                case -4:
-                    InputStream localInputStream1 = rs.getBinaryStream(j);
-                    if (localInputStream1 == null) {
-                        break;
-                    }
-                    try {
-                        m = localInputStream1.read(arrayOfByte2);
-                        if (m > 0) {
-                            localObject1 = new String(arrayOfByte2, 0, m);
-                        }
-                        localInputStream1.close();
-                    } catch (IOException localIOException2) {
-                    }
-                    break;
-                case 2005:
-                    Clob localClob = rs.getClob(j);
-                    if (localClob == null) {
-                        break;
-                    }
-                    localObject3 = localClob.getCharacterStream();
-                    if (localObject3 == null) {
-                        break;
-                    }
-                    try {
-                        m = ((Reader) localObject3).read(arrayOfChar2);
-                        if (m > 0) {
-                            localObject1 = String.valueOf(arrayOfChar2, 0, m);
-                        }
-                        ((Reader) localObject3).close();
-                    } catch (IOException localIOException3) {
-                    }
-                    break;
-                case 2004:
-                    localObject3 = rs.getBlob(j);
-                    if (localObject3 == null) {
-                        break;
-                    }
-                    localObject4 = ((Blob) localObject3).getBinaryStream();
-                    if (localObject4 == null) {
-                        break;
-                    }
-                    try {
-                        m = ((InputStream) localObject4).read(arrayOfByte2);
-                        if (m > 0) {
-                            localObject1 = new String(arrayOfByte2, 0, m);
-                        }
-                        ((InputStream) localObject4).close();
-                    } catch (IOException localIOException4) {
-                    }
-                    break;
-                case 1:
-                case 12:
-                    localObject4 = rs.getCharacterStream(j);
-                    if (localObject4 == null) {
-                        break;
-                    }
-                    try {
-                        m = ((Reader) localObject4).read(arrayOfChar1);
-                        if (rowCache.getColumnType(j) == 1) {
-                            while ((m > 0) && (arrayOfChar1[(m - 1)] == ' ')) {
-                                m--;
+                        try {
+                            m = ((Reader) localObject2).read(arrayOfChar2);
+                            if (m > 0) {
+                                localObject1 = String.valueOf(arrayOfChar2, 0, m);
                             }
+                            ((Reader) localObject2).close();
+                        } catch (IOException localIOException1) {
                         }
-                        if (m > 0) {
-                            localObject1 = String.valueOf(arrayOfChar1, 0, m);
-                        }
-                        ((Reader) localObject4).close();
-                    } catch (IOException localIOException5) {
-                    }
-                    break;
-                case -3:
-                case -2:
-                    InputStream localInputStream2 = rs.getAsciiStream(j);
-                    if (localInputStream2 == null) {
                         break;
-                    }
-                    try {
-                        m = localInputStream2.read(arrayOfByte1);
-                        if (rowCache.getColumnType(j) == -2) {
-                            while ((m > 0) && (arrayOfByte1[(m - 1)] == 32)) {
-                                m--;
+                    case -4:
+                        InputStream localInputStream1 = rs.getBinaryStream(j);
+                        if (localInputStream1 == null) {
+                            break;
+                        }
+                        try {
+                            m = localInputStream1.read(arrayOfByte2);
+                            if (m > 0) {
+                                localObject1 = new String(arrayOfByte2, 0, m);
                             }
+                            localInputStream1.close();
+                        } catch (IOException localIOException2) {
                         }
-                        if (m > 0) {
-                            localObject1 = new String(arrayOfByte1, 0, m);
+                        break;
+                    case 2005:
+                        Clob localClob = rs.getClob(j);
+                        if (localClob == null) {
+                            break;
                         }
-                        localInputStream2.close();
-                    } catch (IOException localIOException6) {
-                    }
-                    break;
-                case 91:
-                    localObject1 = rs.getDate(j);
-                    break;
-                case 92:
-                    localObject1 = rs.getTime(j);
-                    break;
-                case -102:
-                case -101:
-                case 93:
-                    localObject1 = rs.getTimestamp(j);
-                    break;
-                case -7:
-                case -6:
-                case -5:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 16:
-                    localObject1 = rs.getObject(j);
-                    break;
-                case -14:
-                case -13:
-                case -10:
-                case 0:
-                case 70:
-                case 1111:
-                case 2000:
-                case 2001:
-                case 2002:
-                case 2003:
-                case 2006:
-                    localObject1 = "N/A";
-                    break;
-                default:
-                    localObject1 = rs.getString(j);
+                        localObject3 = localClob.getCharacterStream();
+                        if (localObject3 == null) {
+                            break;
+                        }
+                        try {
+                            m = ((Reader) localObject3).read(arrayOfChar2);
+                            if (m > 0) {
+                                localObject1 = String.valueOf(arrayOfChar2, 0, m);
+                            }
+                            ((Reader) localObject3).close();
+                        } catch (IOException localIOException3) {
+                        }
+                        break;
+                    case 2004:
+                        localObject3 = rs.getBlob(j);
+                        if (localObject3 == null) {
+                            break;
+                        }
+                        localObject4 = ((Blob) localObject3).getBinaryStream();
+                        if (localObject4 == null) {
+                            break;
+                        }
+                        try {
+                            m = ((InputStream) localObject4).read(arrayOfByte2);
+                            if (m > 0) {
+                                localObject1 = new String(arrayOfByte2, 0, m);
+                            }
+                            ((InputStream) localObject4).close();
+                        } catch (IOException localIOException4) {
+                        }
+                        break;
+                    case 1:
+                    case 12:
+                        localObject4 = rs.getCharacterStream(j);
+                        if (localObject4 == null) {
+                            break;
+                        }
+                        try {
+                            m = ((Reader) localObject4).read(arrayOfChar1);
+                            if (rowCache.getColumnType(j) == 1) {
+                                while ((m > 0) && (arrayOfChar1[(m - 1)] == ' ')) {
+                                    m--;
+                                }
+                            }
+                            if (m > 0) {
+                                localObject1 = String.valueOf(arrayOfChar1, 0, m);
+                            }
+                            ((Reader) localObject4).close();
+                        } catch (IOException localIOException5) {
+                        }
+                        break;
+                    case -3:
+                    case -2:
+                        InputStream localInputStream2 = rs.getAsciiStream(j);
+                        if (localInputStream2 == null) {
+                            break;
+                        }
+                        try {
+                            m = localInputStream2.read(arrayOfByte1);
+                            if (rowCache.getColumnType(j) == -2) {
+                                while ((m > 0) && (arrayOfByte1[(m - 1)] == 32)) {
+                                    m--;
+                                }
+                            }
+                            if (m > 0) {
+                                localObject1 = new String(arrayOfByte1, 0, m);
+                            }
+                            localInputStream2.close();
+                        } catch (IOException localIOException6) {
+                        }
+                        break;
+                    case 91:
+                        localObject1 = rs.getDate(j);
+                        break;
+                    case 92:
+                        localObject1 = rs.getTime(j);
+                        break;
+                    case -102:
+                    case -101:
+                    case 93:
+                        localObject1 = rs.getTimestamp(j);
+                        break;
+                    case -7:
+                    case -6:
+                    case -5:
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:
+                    case 16:
+                        localObject1 = rs.getObject(j);
+                        break;
+                    case -14:
+                    case -13:
+                    case -10:
+                    case 0:
+                    case 70:
+                    case 1111:
+                    case 2000:
+                    case 2001:
+                    case 2002:
+                    case 2003:
+                    case 2006:
+                        localObject1 = "N/A";
+                        break;
+                    default:
+                        localObject1 = rs.getString(j);
                 }
                 arrayOfObject[(j - 1)] = localObject1;
             }

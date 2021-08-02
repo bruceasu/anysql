@@ -11,17 +11,18 @@ import java.sql.SQLException;
 import java.util.function.Function;
 
 public class DefaultSQLExecutor extends CommandExecutor {
-    public CMDType cmdType = null;
-    public CommandLog out = null;
-    public CommandReader in = null;
+
+    public CMDType       cmdType     = null;
+    public CommandLog    out         = null;
+    public CommandReader in          = null;
     public VariableTable sysVariable = new VariableTable();
-    public Connection database = null;
-    public boolean timing = false;
-    public boolean autoCommit = false;
+    public Connection    database    = null;
+    public boolean       timing      = false;
+    public boolean       autoCommit  = false;
 
     public DefaultSQLExecutor(CMDType paramCMDType) {
-        this.out = new DefaultCommandLog(this);
-        this.in = new DefaultCommandReader();
+        this.out     = new DefaultCommandLog(this);
+        this.in      = new DefaultCommandReader();
         this.cmdType = paramCMDType;
     }
 
@@ -29,15 +30,14 @@ public class DefaultSQLExecutor extends CommandExecutor {
                               CommandReader paramCommandReader,
                               CommandLog paramCommandLog) {
         this.cmdType = paramCMDType;
-        this.in = paramCommandReader;
-        this.out = paramCommandLog;
+        this.in      = paramCommandReader;
+        this.out     = paramCommandLog;
     }
 
     @Override
     public final DBRowCache executeQuery(String paramString, VariableTable paramVariableTable)
-            throws SQLException {
-        if (!isConnected())
-            return null;
+    throws SQLException {
+        if (!isConnected()) { return null; }
         return executeQuery(this.database, paramString, paramVariableTable);
     }
 
@@ -45,7 +45,7 @@ public class DefaultSQLExecutor extends CommandExecutor {
     public final DBRowCache executeQuery(String paramString,
                                          VariableTable paramVariableTable,
                                          int paramInt)
-            throws SQLException {
+    throws SQLException {
         if (!isConnected()) {
             return null;
         }
@@ -122,9 +122,9 @@ public class DefaultSQLExecutor extends CommandExecutor {
 
     public final String skipWord(String param, int num) {
         char[] arr = param.toCharArray();
-        int i = 0;
-        int j = 0;
-        int k = 0;
+        int    i   = 0;
+        int    j   = 0;
+        int    k   = 0;
         while ((j < num) && (i < arr.length)) {
             while ((i < arr.length) && isWhitespace(arr[i])) {
                 i++;
@@ -151,7 +151,7 @@ public class DefaultSQLExecutor extends CommandExecutor {
     public <R> R time(Command cmd, Function<String, R> function) {
         this.out.println();
         long l1 = System.currentTimeMillis();
-        R r = function.apply(cmd.COMMAND);
+        R    r  = function.apply(cmd.command);
         long l2 = System.currentTimeMillis();
         printCost(l2, l1);
         this.out.println();
@@ -169,7 +169,8 @@ public class DefaultSQLExecutor extends CommandExecutor {
     @Override
     public void showVersion() {
         this.out.println();
-        this.out.println(" Default Command Executor, version 1.0 -- " + DateOperator.getDay("yyyy-MM-dd HH:mm:ss"));
+        this.out.println(" Default Command Executor, version 1.0 -- " + DateOperator
+                .getDay("yyyy-MM-dd HH:mm:ss"));
         this.out.println();
         this.out.println(" (@) Copyright Lou Fangxin, all rights reserved.");
         this.out.println();
@@ -196,13 +197,13 @@ public class DefaultSQLExecutor extends CommandExecutor {
     }
 
     @Override
-    public final CMDType getCommandType() {
+    public final CMDType getCmdType() {
         return this.cmdType;
     }
 
     @Override
     public void doServerMessage()
-            throws SQLException {
+    throws SQLException {
     }
 
     @Override
@@ -217,5 +218,29 @@ public class DefaultSQLExecutor extends CommandExecutor {
 
     private boolean isWhitespace(char c) {
         return (c == ' ') || (c == '\t') || (c == '\r') || (c == '\n');
+    }
+
+    public CommandLog getOut() {
+        return out;
+    }
+
+    public CommandReader getIn() {
+        return in;
+    }
+
+    public VariableTable getSysVariable() {
+        return sysVariable;
+    }
+
+    public Connection getDatabase() {
+        return database;
+    }
+
+    public boolean isTiming() {
+        return timing;
+    }
+
+    public boolean isAutoCommit() {
+        return autoCommit;
     }
 }

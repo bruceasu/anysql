@@ -12,9 +12,9 @@ public class PasswordReader {
         } else {
             ConsoleEraser localConsoleEraser = new ConsoleEraser();
             System.out.print(paramString);
-            BufferedReader localBufferedReader = new BufferedReader(new InputStreamReader(System.in));
+            BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
             localConsoleEraser.start();
-            String str = localBufferedReader.readLine();
+            String str = reader.readLine();
             localConsoleEraser.halt();
             System.out.print("\b");
             return str;

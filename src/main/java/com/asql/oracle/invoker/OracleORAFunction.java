@@ -24,7 +24,7 @@
 package com.asql.oracle.invoker;
 
 import com.asql.core.log.CommandLog;
-import com.asql.core.util.JavaVM;
+import com.asql.core.util.JavaVm;
 import java.io.FileReader;
 import java.io.IOException;
 
@@ -1237,7 +1237,7 @@ public class OracleORAFunction {
         }
         String sql;
         try {
-            String path = "scripts" + JavaVM.FILE_SEPERATOR + name.toLowerCase() + ".sql";
+            String path = "scripts" + JavaVm.FILE_SEPERATOR + name.toLowerCase() + ".sql";
             FileReader localFileReader = new FileReader(path);
             char[] arrayOfChar = new char[65536];
             int m = localFileReader.read(arrayOfChar);

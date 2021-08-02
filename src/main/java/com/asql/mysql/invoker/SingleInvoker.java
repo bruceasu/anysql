@@ -25,83 +25,83 @@ public class SingleInvoker implements ModuleInvoker
     {
         this.executor = executor;
         out = executor.getCommandLog();
-        cmdType = executor.getCommandType();
+        cmdType = executor.getCmdType();
 
     }
 
     @Override
     public boolean invoke(Command cmd)
     {
-        int k = executor.getSingleID(cmd.COMMAND);
+        int k = executor.getSingleID(cmd.command);
         switch (k) {
         case ASQL_SINGLE_CONNECT:
         case ASQL_SINGLE_CONN:
-            procConnect(cmd.COMMAND);
+            procConnect(cmd.command);
             break;
         case ASQL_SINGLE_DISCONNECT:
-            executor.procDisconnect(cmd.COMMAND);
+            executor.procDisconnect(cmd.command);
             break;
         case ASQL_SINGLE_DEBUGLEVEL:
-            procDebugLevel(cmd.COMMAND);
+            procDebugLevel(cmd.command);
             break;
         case ASQL_SINGLE_PAGESIZE:
-            procPageSize(cmd.COMMAND);
+            procPageSize(cmd.command);
             break;
         case ASQL_SINGLE_HEADING:
-            procHeading(cmd.COMMAND);
+            procHeading(cmd.command);
             break;
         case ASQL_SINGLE_DELIMITER:
-            procDelimiter(cmd.COMMAND);
+            procDelimiter(cmd.command);
             break;
         case ASQL_SINGLE_VAR:
-            procVariable(cmd.COMMAND);
+            procVariable(cmd.command);
             break;
         case ASQL_SINGLE_UNVAR:
-            procUnVariable(cmd.COMMAND);
+            procUnVariable(cmd.command);
             break;
         case ASQL_SINGLE_PRINT:
-            procPrint(cmd.COMMAND);
+            procPrint(cmd.command);
             break;
         case ASQL_SINGLE_TIMING:
-            procTiming(cmd.COMMAND);
+            procTiming(cmd.command);
             break;
         case ASQL_SINGLE_DEFINE:
-            procDefine(cmd.COMMAND);
+            procDefine(cmd.command);
             break;
         case ASQL_SINGLE_AUTOCOMMIT:
-            procAutocommit(cmd.COMMAND);
+            procAutocommit(cmd.command);
             break;
         case ASQL_SINGLE_SQLSET:
-            procSQLSet(cmd.COMMAND);
+            procSQLSet(cmd.command);
             break;
         case ASQL_SINGLE_SPOOLAPPEND:
-            procSpoolAppend(cmd.COMMAND);
+            procSpoolAppend(cmd.command);
             break;
         case ASQL_SINGLE_SPOOL:
-            procSpool(cmd.COMMAND);
+            procSpool(cmd.command);
             break;
         case ASQL_SINGLE_READ:
-            procRead(cmd.COMMAND);
+            procRead(cmd.command);
             break;
         case ASQL_SINGLE_HELP:
-            procHelp(cmd.COMMAND);
+            procHelp(cmd.command);
             break;
         case ASQL_SINGLE_HOST:
-            procHost(cmd.COMMAND);
+            procHost(cmd.command);
             break;
         case ASQL_SINGLE_USE:
-            procUse(cmd.COMMAND);
+            procUse(cmd.command);
             break;
         case ASQL_SINGLE_SPOOLOFF:
-            procSpoolOff(cmd.COMMAND);
+            procSpoolOff(cmd.command);
             break;
         case ASQL_SINGLE_AUTOTRACE:
-            procAutoTrace(cmd.COMMAND);
+            procAutoTrace(cmd.command);
             break;
         case ASQL_SINGLE_AUTOT:
             break;
         case ASQL_SINGLE_QUERYONLY:
-            procQueryOnly(cmd.COMMAND);
+            procQueryOnly(cmd.command);
             break;
         default:
         }
@@ -141,12 +141,21 @@ public class SingleInvoker implements ModuleInvoker
             }
             if (arr.length > 2) {
                 password = arr[2];
+                if ("-p".equals(password)) {
+                    try {
+                        password = executor.getCommandReader().readPassword();
+                    } catch (Exception e) {
+                        out.println("Read password fail.");
+                        return;
+                    }
+                }
             }
         } else {
             out.println("Usage:");
             out.println("  CONNECT host:port/db username password");
             return;
         }
+        
         try {
             executor.disconnect();
             executor.database = DBConnection.getConnection("MYSQL", host, username, password);

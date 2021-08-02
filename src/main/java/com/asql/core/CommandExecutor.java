@@ -4,7 +4,7 @@ import static com.asql.core.CMDType.*;
 
 import com.asql.core.io.CommandReader;
 import com.asql.core.log.CommandLog;
-import com.asql.core.util.JavaVM;
+import com.asql.core.util.JavaVm;
 import com.asql.core.util.TextUtils;
 import java.io.*;
 import java.sql.*;
@@ -13,8 +13,7 @@ import java.util.Vector;
 import sun.misc.Signal;
 import sun.misc.SignalHandler;
 
-public abstract class CommandExecutor extends SQLExecutor
-{
+public abstract class CommandExecutor extends SQLExecutor {
 
     public static final int       SQL_QUERY_TIMEOUT = 3600;
     private             int       debugLevel        = 0;
@@ -28,33 +27,27 @@ public abstract class CommandExecutor extends SQLExecutor
     private             boolean   echoOn            = true;
     private             boolean   termOut           = true;
 
-    public final int getDebugLevel()
-    {
+    public final int getDebugLevel() {
         return this.debugLevel;
     }
 
-    public final void setDebugLevel(int debugLevel)
-    {
+    public final void setDebugLevel(int debugLevel) {
         this.debugLevel = debugLevel;
     }
 
-    public final boolean getEcho()
-    {
+    public final boolean getEcho() {
         return this.echoOn;
     }
 
-    public final void setTermOut(boolean paramBoolean)
-    {
+    public final void setTermOut(boolean paramBoolean) {
         this.termOut = paramBoolean;
     }
 
-    public final boolean getTermOut()
-    {
+    public final boolean getTermOut() {
         return this.termOut;
     }
 
-    public final void setFetchSize(int size)
-    {
+    public final void setFetchSize(int size) {
         this.fetchSize = size;
         if (size < 1) {
             this.fetchSize = 1;
@@ -74,7 +67,7 @@ public abstract class CommandExecutor extends SQLExecutor
 
     public abstract void setCommandReader(CommandReader paramCommandReader);
 
-    public abstract CMDType getCommandType();
+    public abstract CMDType getCmdType();
 
     public abstract void showVersion();
 
@@ -84,10 +77,9 @@ public abstract class CommandExecutor extends SQLExecutor
 
     public abstract String getLastCommand();
 
-    public final String removeNewLine(String paramString)
-    {
+    public final String removeNewLine(String paramString) {
         char[] arrayOfChar = paramString.toCharArray();
-        int i;
+        int    i;
         for (i = arrayOfChar.length - 1;
                 (i >= 0) && ((arrayOfChar[i] == '\r') || (arrayOfChar[i] == '\n') || (arrayOfChar[i]
                         == '\t') || (arrayOfChar[i] == ' ')); i--) {
@@ -99,21 +91,19 @@ public abstract class CommandExecutor extends SQLExecutor
         return "";
     }
 
-    public int fetch(ResultSet rs, DBRowCache rowCache) throws SQLException
-    {
+    public int fetch(ResultSet rs, DBRowCache rowCache) throws SQLException {
         return fetch(rs, rowCache, 100);
     }
 
     public int fetch(ResultSet rs, DBRowCache rowCache, int size)
-    throws SQLException
-    {
-        int i = 0;
-        int j = 0;
-        int k = 0;
-        byte[] byteBuffer1 = new byte[8192];
-        char[] charBuffer1 = new char[4096];
-        byte[] byteBuffer2 = new byte[65536];
-        char[] charBuffer2 = new char[65536];
+    throws SQLException {
+        int               i           = 0;
+        int               j           = 0;
+        int               k           = 0;
+        byte[]            byteBuffer1 = new byte[8192];
+        char[]            charBuffer1 = new char[4096];
+        byte[]            byteBuffer2 = new byte[65536];
+        char[]            charBuffer2 = new char[65536];
         ResultSetMetaData resultSetMetaData;
         if (rowCache.getColumnCount() == 0) {
             resultSetMetaData = rs.getMetaData();
@@ -146,149 +136,149 @@ public abstract class CommandExecutor extends SQLExecutor
                 i = rowCache.appendRow(values)) {
             values = new Object[rowCache.getColumnCount()];
             for (j = 1; j <= rowCache.getColumnCount(); j++) {
-                int m;
-                Object value = null;
-                Reader reader;
+                int         m;
+                Object      value = null;
+                Reader      reader;
                 InputStream stream;
 
                 switch (rowCache.getColumnType(j)) {
-                case -1:
-                    reader = rs.getCharacterStream(j);
-                    if (reader == null) {
-                        break;
-                    }
-                    try {
-                        m = reader.read(charBuffer2);
-                        if (m > 0) {
-                            value = String.valueOf(charBuffer2, 0, m);
+                    case -1:
+                        reader = rs.getCharacterStream(j);
+                        if (reader == null) {
+                            break;
                         }
-                        reader.close();
-                    } catch (IOException e) {
-                    }
-                case -4:
-                    stream = rs.getBinaryStream(j);
-                    if (stream == null) {
-                        break;
-                    }
-                    try {
-                        m = stream.read(byteBuffer2);
-                        if (m > 0) {
-                            value = new String(byteBuffer2, 0, m);
-                        }
-                        stream.close();
-                    } catch (IOException localIOException2) {
-                    }
-                case 2005:
-                    Clob clob = rs.getClob(j);
-                    if (clob == null) {
-                        break;
-                    }
-                    reader = clob.getCharacterStream();
-                    if (reader == null) {
-                        break;
-                    }
-                    try {
-                        m = reader.read(charBuffer2);
-                        if (m > 0) {
-                            value = String.valueOf(charBuffer2, 0, m);
-                        }
-                        reader.close();
-                    } catch (IOException localIOException3) {
-                    }
-                case 2004:
-                    Blob blob = rs.getBlob(j);
-                    if (blob == null) {
-                        break;
-                    }
-                    stream = blob.getBinaryStream();
-                    if (stream == null) {
-                        break;
-                    }
-                    try {
-                        m = stream.read(byteBuffer2);
-                        if (m > 0) {
-                            value = new String(byteBuffer2, 0, m);
-                        }
-                        stream.close();
-                    } catch (IOException localIOException4) {
-                    }
-                case 1:
-                case 12:
-                    reader = rs.getCharacterStream(j);
-                    if (reader == null) {
-                        break;
-                    }
-                    try {
-                        m = reader.read(charBuffer1);
-                        if (rowCache.getColumnType(j) == 1) {
-                            while ((m > 0) && (charBuffer1[(m - 1)] == ' ')) {
-                                m--;
+                        try {
+                            m = reader.read(charBuffer2);
+                            if (m > 0) {
+                                value = String.valueOf(charBuffer2, 0, m);
                             }
+                            reader.close();
+                        } catch (IOException e) {
                         }
-                        if (m > 0) {
-                            value = String.valueOf(charBuffer1, 0, m);
+                    case -4:
+                        stream = rs.getBinaryStream(j);
+                        if (stream == null) {
+                            break;
                         }
-                        reader.close();
-                    } catch (IOException localIOException5) {
-                    }
-                case -3:
-                case -2:
-                    stream = rs.getAsciiStream(j);
-                    if (stream == null) {
-                        break;
-                    }
-                    try {
-                        m = stream.read(byteBuffer1);
-                        if (rowCache.getColumnType(j) == -2) {
-                            while ((m > 0) && (byteBuffer1[(m - 1)] == 32)) {
-                                m--;
+                        try {
+                            m = stream.read(byteBuffer2);
+                            if (m > 0) {
+                                value = new String(byteBuffer2, 0, m);
                             }
+                            stream.close();
+                        } catch (IOException localIOException2) {
                         }
-                        if (m > 0) {
-                            value = new String(byteBuffer1, 0, m);
+                    case 2005:
+                        Clob clob = rs.getClob(j);
+                        if (clob == null) {
+                            break;
                         }
-                        stream.close();
-                    } catch (IOException localIOException6) {
-                    }
-                case 91:
-                    value = rs.getDate(j);
-                    break;
-                case 92:
-                    value = rs.getTime(j);
-                    break;
-                case -102:
-                case -101:
-                case 93:
-                    value = rs.getTimestamp(j);
-                    break;
-                case -7:
-                case -6:
-                case -5:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 16:
-                    value = rs.getObject(j);
-                    break;
-                case -14:
-                case -13:
-                case -10:
-                case 0:
-                case 70:
-                case 1111:
-                case 2000:
-                case 2001:
-                case 2002:
-                case 2003:
-                case 2006:
-                    value = "N/A";
-                    break;
-                default:
-                    value = rs.getString(j);
+                        reader = clob.getCharacterStream();
+                        if (reader == null) {
+                            break;
+                        }
+                        try {
+                            m = reader.read(charBuffer2);
+                            if (m > 0) {
+                                value = String.valueOf(charBuffer2, 0, m);
+                            }
+                            reader.close();
+                        } catch (IOException localIOException3) {
+                        }
+                    case 2004:
+                        Blob blob = rs.getBlob(j);
+                        if (blob == null) {
+                            break;
+                        }
+                        stream = blob.getBinaryStream();
+                        if (stream == null) {
+                            break;
+                        }
+                        try {
+                            m = stream.read(byteBuffer2);
+                            if (m > 0) {
+                                value = new String(byteBuffer2, 0, m);
+                            }
+                            stream.close();
+                        } catch (IOException localIOException4) {
+                        }
+                    case 1:
+                    case 12:
+                        reader = rs.getCharacterStream(j);
+                        if (reader == null) {
+                            break;
+                        }
+                        try {
+                            m = reader.read(charBuffer1);
+                            if (rowCache.getColumnType(j) == 1) {
+                                while ((m > 0) && (charBuffer1[(m - 1)] == ' ')) {
+                                    m--;
+                                }
+                            }
+                            if (m > 0) {
+                                value = String.valueOf(charBuffer1, 0, m);
+                            }
+                            reader.close();
+                        } catch (IOException localIOException5) {
+                        }
+                    case -3:
+                    case -2:
+                        stream = rs.getAsciiStream(j);
+                        if (stream == null) {
+                            break;
+                        }
+                        try {
+                            m = stream.read(byteBuffer1);
+                            if (rowCache.getColumnType(j) == -2) {
+                                while ((m > 0) && (byteBuffer1[(m - 1)] == 32)) {
+                                    m--;
+                                }
+                            }
+                            if (m > 0) {
+                                value = new String(byteBuffer1, 0, m);
+                            }
+                            stream.close();
+                        } catch (IOException localIOException6) {
+                        }
+                    case 91:
+                        value = rs.getDate(j);
+                        break;
+                    case 92:
+                        value = rs.getTime(j);
+                        break;
+                    case -102:
+                    case -101:
+                    case 93:
+                        value = rs.getTimestamp(j);
+                        break;
+                    case -7:
+                    case -6:
+                    case -5:
+                    case 2:
+                    case 3:
+                    case 4:
+                    case 5:
+                    case 6:
+                    case 7:
+                    case 8:
+                    case 16:
+                        value = rs.getObject(j);
+                        break;
+                    case -14:
+                    case -13:
+                    case -10:
+                    case 0:
+                    case 70:
+                    case 1111:
+                    case 2000:
+                    case 2001:
+                    case 2002:
+                    case 2003:
+                    case 2006:
+                        value = "N/A";
+                        break;
+                    default:
+                        value = rs.getString(j);
                 }
                 values[(j - 1)] = value;
             }
@@ -296,8 +286,7 @@ public abstract class CommandExecutor extends SQLExecutor
         return i;
     }
 
-    public final void cancel()
-    {
+    public final void cancel() {
         this.exitShowLoop = true;
         if (this.currentPid != null) {
             this.currentPid.destroy();
@@ -320,32 +309,27 @@ public abstract class CommandExecutor extends SQLExecutor
         }
     }
 
-    public final void setShowComplete(boolean paramBoolean)
-    {
+    public final void setShowComplete(boolean paramBoolean) {
         this.showComplete = paramBoolean;
     }
 
-    public final void setEcho(boolean paramBoolean)
-    {
+    public final void setEcho(boolean paramBoolean) {
         this.echoOn = paramBoolean;
     }
 
     public static final void readBuffer(RandomAccessFile file, byte[] buffer, long skip)
-    throws IOException
-    {
+    throws IOException {
         file.seek(skip);
         file.readFully(buffer, 0, buffer.length);
     }
 
     public static final void writeBuffer(RandomAccessFile file, byte[] buffer, long skip)
-    throws IOException
-    {
+    throws IOException {
         file.seek(skip);
         file.write(buffer, 0, buffer.length);
     }
 
-    public static final byte[] hex2byte(char[] buffer)
-    {
+    public static final byte[] hex2byte(char[] buffer) {
         if ((buffer == null) || (buffer.length < 2)) {
             return new byte[0];
         }
@@ -356,15 +340,14 @@ public abstract class CommandExecutor extends SQLExecutor
         return arrayOfByte;
     }
 
-    public void editHex(String path, String skip, String hexData)
-    {
+    public void editHex(String path, String skip, String hexData) {
         if ((skip == null) || (hexData == null)) {
             return;
         }
         try {
-            long l = Long.valueOf(skip, 16).longValue();
+            long   l           = Long.valueOf(skip, 16).longValue();
             byte[] arrayOfByte = hex2byte(hexData.trim().toCharArray());
-            File localFile = new File(path);
+            File   localFile   = new File(path);
             if ((!localFile.exists()) || (!localFile.isFile()) || (!localFile.canWrite())) {
                 getCommandLog().println("Cannot access file : " + path);
                 return;
@@ -379,8 +362,7 @@ public abstract class CommandExecutor extends SQLExecutor
         }
     }
 
-    public final void viewHex(String path, int startPage, int pages, int pageSize)
-    {
+    public final void viewHex(String path, int startPage, int pages, int pageSize) {
         File file = new File(path);
         if ((!file.exists()) || (!file.isFile()) || (!file.canRead())) {
             getCommandLog().println("Cannot access file : " + path);
@@ -401,10 +383,10 @@ public abstract class CommandExecutor extends SQLExecutor
         if (pageSize > 32) {
             pageSize = 32;
         }
-        StringBuffer buffer1 = new StringBuffer();
-        StringBuffer buffer2 = new StringBuffer();
-        int i = 0;
-        byte[] arrayOfByte = new byte[pages * pageSize * 1024];
+        StringBuffer     buffer1          = new StringBuffer();
+        StringBuffer     buffer2          = new StringBuffer();
+        int              i                = 0;
+        byte[]           arrayOfByte      = new byte[pages * pageSize * 1024];
         RandomAccessFile randomAccessFile = null;
         try {
             randomAccessFile = new RandomAccessFile(file, "r");
@@ -479,14 +461,13 @@ public abstract class CommandExecutor extends SQLExecutor
         }
     }
 
-    public void host(String paramString) throws IOException
-    {
+    public void host(String paramString) throws IOException {
         String[] arrayOfString = null;
-        String str1 = paramString;
-        if (JavaVM.OS.startsWith("Windows")) {
+        String   str1          = paramString;
+        if (JavaVm.OS.startsWith("Windows")) {
             str1 = "CMD /C " + paramString;
         }
-        File localFile = new File(JavaVM.USER_DIRECTORY);
+        File    localFile    = new File(JavaVm.USER_DIRECTORY);
         Process localProcess = Runtime.getRuntime().exec(str1, arrayOfString, localFile);
         this.currentPid = localProcess;
         InputStream localInputStream1 = localProcess.getInputStream();
@@ -513,8 +494,7 @@ public abstract class CommandExecutor extends SQLExecutor
         this.currentPid = null;
     }
 
-    public static final long getLong(String paramString, long paramLong)
-    {
+    public static final long getLong(String paramString, long paramLong) {
         try {
             return Long.valueOf(paramString).longValue();
         } catch (NumberFormatException localNumberFormatException) {
@@ -522,8 +502,7 @@ public abstract class CommandExecutor extends SQLExecutor
         return paramLong;
     }
 
-    public static final int getInt(String paramString, int paramInt)
-    {
+    public static final int getInt(String paramString, int paramInt) {
         try {
             return Integer.valueOf(paramString).intValue();
         } catch (NumberFormatException localNumberFormatException) {
@@ -531,18 +510,15 @@ public abstract class CommandExecutor extends SQLExecutor
         return paramInt;
     }
 
-    public final String lpad(String paramString, int paramInt)
-    {
+    public final String lpad(String paramString, int paramInt) {
         return getFixedWidth(paramString, paramInt, true);
     }
 
-    public final String rpad(String paramString, int paramInt)
-    {
+    public final String rpad(String paramString, int paramInt) {
         return getFixedWidth(paramString, paramInt, false);
     }
 
-    private String getFixedWidth(String content, int length, boolean padEnd)
-    {
+    private String getFixedWidth(String content, int length, boolean padEnd) {
         StringBuilder builder = new StringBuilder();
         if ((padEnd) && (content != null)) {
             builder.append(content);
@@ -556,8 +532,7 @@ public abstract class CommandExecutor extends SQLExecutor
         return builder.toString();
     }
 
-    public final int commandAt(String[] commands, String[] command)
-    {
+    public final int commandAt(String[] commands, String[] command) {
         if (command == null) {
             return -1;
         }
@@ -593,8 +568,7 @@ public abstract class CommandExecutor extends SQLExecutor
 
     public final void debug(String paramString,
                             SQLQuery paramSQLQuery,
-                            VariableTable paramVariableTable)
-    {
+                            VariableTable paramVariableTable) {
         if (this.debugLevel > 0) {
             CommandLog localCommandLog = getCommandLog();
             localCommandLog.println(
@@ -644,35 +618,32 @@ public abstract class CommandExecutor extends SQLExecutor
 
     public final DBRowCache executeQuery(Connection paramConnection,
                                          String paramString,
-                                         VariableTable paramVariableTable) throws SQLException
-    {
+                                         VariableTable paramVariableTable) throws SQLException {
         return executeQuery(paramConnection, paramString, paramVariableTable, 10000);
     }
 
     public final DBRowCache executeQuery(SQLStatement paramSQLStatement,
-                                         VariableTable paramVariableTable) throws SQLException
-    {
+                                         VariableTable paramVariableTable) throws SQLException {
         return executeQuery(paramSQLStatement, paramVariableTable, 10000);
     }
 
 
     public final DBRowCache executeQuery(SQLStatement paramSQLStatement,
                                          VariableTable paramVariableTable,
-                                         int paramInt) throws SQLException
-    {
-        ResultSet localResultSet = null;
-        SQLException sqlException = null;
+                                         int paramInt) throws SQLException {
+        ResultSet        localResultSet        = null;
+        SQLException     sqlException          = null;
         SimpleDBRowCache localSimpleDBRowCache = new SimpleDBRowCache();
         try {
             debug(paramSQLStatement.getDestSQL(), null, paramVariableTable);
             paramSQLStatement.stmt.setMaxRows(paramInt);
             paramSQLStatement.bind(paramVariableTable);
             this.currentStmt = paramSQLStatement.stmt;
-            localResultSet = paramSQLStatement.stmt.executeQuery();
-            this.resultSet = localResultSet;
+            localResultSet   = paramSQLStatement.stmt.executeQuery();
+            this.resultSet   = localResultSet;
             fetch(localResultSet, localSimpleDBRowCache, paramInt);
             localResultSet.close();
-            this.resultSet = null;
+            this.resultSet   = null;
             this.currentStmt = null;
         } catch (SQLException localSQLException1) {
             sqlException = localSQLException1;
@@ -692,22 +663,21 @@ public abstract class CommandExecutor extends SQLExecutor
     public final DBRowCache executeQuery(Connection paramConnection,
                                          String paramString,
                                          VariableTable paramVariableTable,
-                                         int paramInt) throws SQLException
-    {
-        SQLStatement localSQLStatement = null;
-        ResultSet localResultSet = null;
-        SQLException sqlException = null;
+                                         int paramInt) throws SQLException {
+        SQLStatement     localSQLStatement     = null;
+        ResultSet        localResultSet        = null;
+        SQLException     sqlException          = null;
         SimpleDBRowCache localSimpleDBRowCache = new SimpleDBRowCache();
         try {
             localSQLStatement = prepareStatement(paramConnection, paramString, paramVariableTable);
             localSQLStatement.stmt.setMaxRows(paramInt);
             localSQLStatement.bind(paramVariableTable);
             this.currentStmt = localSQLStatement.stmt;
-            localResultSet = localSQLStatement.stmt.executeQuery();
-            this.resultSet = localResultSet;
+            localResultSet   = localSQLStatement.stmt.executeQuery();
+            this.resultSet   = localResultSet;
             fetch(localResultSet, localSimpleDBRowCache, paramInt);
             localResultSet.close();
-            this.resultSet = null;
+            this.resultSet   = null;
             this.currentStmt = null;
         } catch (SQLException localSQLException1) {
             sqlException = localSQLException1;
@@ -732,10 +702,9 @@ public abstract class CommandExecutor extends SQLExecutor
 
     public final SQLStatement prepareScript(Connection paramConnection,
                                             String paramString,
-                                            VariableTable paramVariableTable) throws SQLException
-    {
+                                            VariableTable paramVariableTable) throws SQLException {
         String[] arrayOfString = new String[0];
-        String str = paramVariableTable.parseString(paramString, '&', '\\');
+        String   str           = paramVariableTable.parseString(paramString, '&', '\\');
         debug(str, null, paramVariableTable);
         PreparedStatement preparedStatement = paramConnection.prepareStatement(str, 1003, 1007);
         preparedStatement.setQueryTimeout(SQL_QUERY_TIMEOUT);
@@ -746,8 +715,8 @@ public abstract class CommandExecutor extends SQLExecutor
 
     public final SQLStatement prepareStatement(Connection paramConnection,
                                                String paramString,
-                                               VariableTable paramVariableTable) throws SQLException
-    {
+                                               VariableTable paramVariableTable)
+    throws SQLException {
         return prepareStatement(paramConnection, paramString, paramVariableTable, 1003, 1007);
     }
 
@@ -755,8 +724,7 @@ public abstract class CommandExecutor extends SQLExecutor
                                                String query,
                                                VariableTable paramVariableTable,
                                                int paramInt1,
-                                               int paramInt2) throws SQLException
-    {
+                                               int paramInt2) throws SQLException {
         SQLQuery localSQLQuery = SQLConvert.parseSQL(query == null ? "" : query,
                 paramVariableTable);
         debug(localSQLQuery.getDestSQL(), localSQLQuery, paramVariableTable);
@@ -769,8 +737,7 @@ public abstract class CommandExecutor extends SQLExecutor
 
     public final SQLCallable prepareCall(Connection paramConnection,
                                          String paramString,
-                                         VariableTable paramVariableTable) throws SQLException
-    {
+                                         VariableTable paramVariableTable) throws SQLException {
         return prepareCall(paramConnection, paramString, paramVariableTable, 1003, 1007);
     }
 
@@ -778,8 +745,7 @@ public abstract class CommandExecutor extends SQLExecutor
                                          String paramString,
                                          VariableTable paramVariableTable,
                                          int paramInt1,
-                                         int paramInt2) throws SQLException
-    {
+                                         int paramInt2) throws SQLException {
         CallableStatement localCallableStatement = null;
         SQLQuery localSQLQuery = SQLConvert.parseCall(paramString == null ? "" : paramString,
                 paramVariableTable);
@@ -791,41 +757,38 @@ public abstract class CommandExecutor extends SQLExecutor
         return new SQLCallable(localCallableStatement, localSQLQuery);
     }
 
-    public void procDisabledCommand(Command paramCommand)
-    {
+    public void procDisabledCommand(Command paramCommand) {
     }
 
-    public void procUnknownCommand(Command paramCommand)
-    {
+    public void procUnknownCommand(Command paramCommand) {
         getCommandLog().println("Unknown command!");
     }
 
-    public final void run(Command paramCommand) throws IOException
-    {
-        CommandLog log = getCommandLog();
-        CMDType localCMDType = getCommandType();
+    public final void run(Command paramCommand) throws IOException {
+        CommandLog    log                = getCommandLog();
+        CMDType       localCMDType       = getCmdType();
         CommandReader localCommandReader = getCommandReader();
-        int i = -1;
-        if (paramCommand.TYPE1 == ASQL_EXIT) {
+        int           i                  = -1;
+        if (paramCommand.type1 == ASQL_EXIT) {
             return;
         }
-        if ((paramCommand.TYPE1 != ASQL_COMMENT) && (paramCommand.TYPE1 != NULL_COMMAND) && (
-                paramCommand.TYPE1 != MULTI_COMMENT_START)) {
-            if (paramCommand.TYPE1 == UNKNOWN_COMMAND) {
+        if ((paramCommand.type1 != ASQL_COMMENT) && (paramCommand.type1 != NULL_COMMAND) && (
+                paramCommand.type1 != MULTI_COMMENT_START)) {
+            if (paramCommand.type1 == UNKNOWN_COMMAND) {
                 procUnknownCommand(paramCommand);
-            } else if (paramCommand.TYPE1 == DISABLED_COMMAND) {
+            } else if (paramCommand.type1 == DISABLED_COMMAND) {
                 procDisabledCommand(paramCommand);
-            } else if ((paramCommand.TYPE1 == ASQL_SINGLE) || (paramCommand.TYPE1
-                    == ASQL_DB_COMMAND) || (paramCommand.TYPE1 == ASQL_MULTIPLE)) {
-                if ((paramCommand.TYPE2 != ASQL_CANCEL) && (!execute(paramCommand))) {
+            } else if ((paramCommand.type1 == ASQL_SINGLE) || (paramCommand.type1
+                    == ASQL_DB_COMMAND) || (paramCommand.type1 == ASQL_MULTIPLE)) {
+                if ((paramCommand.type2 != ASQL_CANCEL) && (!execute(paramCommand))) {
                     return;
                 }
-            } else if (paramCommand.TYPE1 == ASQL_SQL_FILE) {
+            } else if (paramCommand.type1 == ASQL_SQL_FILE) {
                 if (!execute(paramCommand)) {
                     return;
                 }
             } else if (isConnected()) {
-                if ((paramCommand.TYPE2 != ASQL_CANCEL) && (!execute(paramCommand))) {
+                if ((paramCommand.type2 != ASQL_CANCEL) && (!execute(paramCommand))) {
                     return;
                 }
             } else {
@@ -834,12 +797,11 @@ public abstract class CommandExecutor extends SQLExecutor
         }
     }
 
-    public final Command run(CommandReader paramCommandReader) throws IOException
-    {
-        CommandLog log = getCommandLog();
-        CMDType cmdType = getCommandType();
-        int i = -1;
-        Command localCommand = new Command(ASQL_EXIT, ASQL_EXIT, null);
+    public final Command run(CommandReader paramCommandReader) throws IOException {
+        CommandLog log          = getCommandLog();
+        CMDType    cmdType      = getCmdType();
+        int        i            = -1;
+        Command    localCommand = new Command(ASQL_EXIT, ASQL_EXIT, null);
         while (true) {
             if ((this.echoOn) && (this.termOut)) {
                 localCommand = cmdType.readCommand(paramCommandReader, log, true);
@@ -848,36 +810,36 @@ public abstract class CommandExecutor extends SQLExecutor
             } else {
                 localCommand = cmdType.readCommand(paramCommandReader);
             }
-            if (localCommand.TYPE1 == ASQL_EXIT) {
+            if (localCommand.type1 == ASQL_EXIT) {
                 return localCommand;
             }
-            if ((localCommand.TYPE1 == ASQL_COMMENT) || (localCommand.TYPE1 == NULL_COMMAND) || (
-                    localCommand.TYPE1 == MULTI_COMMENT_START)) {
+            if ((localCommand.type1 == ASQL_COMMENT) || (localCommand.type1 == NULL_COMMAND) || (
+                    localCommand.type1 == MULTI_COMMENT_START)) {
                 continue;
             }
-            if (localCommand.TYPE1 == UNKNOWN_COMMAND) {
+            if (localCommand.type1 == UNKNOWN_COMMAND) {
                 procUnknownCommand(localCommand);
                 continue;
             }
-            if (localCommand.TYPE1 == DISABLED_COMMAND) {
+            if (localCommand.type1 == DISABLED_COMMAND) {
                 procDisabledCommand(localCommand);
                 continue;
             }
-            if ((localCommand.TYPE1 == ASQL_SINGLE) || (localCommand.TYPE1 == ASQL_DB_COMMAND) || (
-                    localCommand.TYPE1 == ASQL_MULTIPLE)) {
-                if ((localCommand.TYPE2 == ASQL_CANCEL) || (execute(localCommand))) {
+            if ((localCommand.type1 == ASQL_SINGLE) || (localCommand.type1 == ASQL_DB_COMMAND) || (
+                    localCommand.type1 == ASQL_MULTIPLE)) {
+                if ((localCommand.type2 == ASQL_CANCEL) || (execute(localCommand))) {
                     continue;
                 }
                 break;
             }
-            if (localCommand.TYPE1 == ASQL_SQL_FILE) {
+            if (localCommand.type1 == ASQL_SQL_FILE) {
                 if (execute(localCommand)) {
                     continue;
                 }
                 break;
             }
             if (isConnected()) {
-                if ((localCommand.TYPE2 == ASQL_CANCEL) || (execute(localCommand))) {
+                if ((localCommand.type2 == ASQL_CANCEL) || (execute(localCommand))) {
                     continue;
                 }
                 break;
@@ -887,12 +849,11 @@ public abstract class CommandExecutor extends SQLExecutor
         return localCommand;
     }
 
-    public final void run() throws IOException
-    {
-        CommandLog log = getCommandLog();
-        CMDType localCMDType = getCommandType();
+    public final void run() throws IOException {
+        CommandLog    log           = getCommandLog();
+        CMDType       localCMDType  = getCmdType();
         CommandReader commandReader = getCommandReader();
-        Command command = null;
+        Command       command       = null;
         showVersion();
         int i = -1;
         try {
@@ -903,36 +864,36 @@ public abstract class CommandExecutor extends SQLExecutor
             System.runFinalization();
             command = localCMDType.readCommand(commandReader, log, false);
             System.gc();
-            if (command.TYPE1 == ASQL_EXIT) {
+            if (command.type1 == ASQL_EXIT) {
                 break;
             }
-            if ((command.TYPE1 == ASQL_COMMENT) || (command.TYPE1 == NULL_COMMAND) || (command.TYPE1
+            if ((command.type1 == ASQL_COMMENT) || (command.type1 == NULL_COMMAND) || (command.type1
                     == MULTI_COMMENT_START)) {
                 continue;
             }
-            if (command.TYPE1 == UNKNOWN_COMMAND) {
+            if (command.type1 == UNKNOWN_COMMAND) {
                 procUnknownCommand(command);
                 continue;
             }
-            if (command.TYPE1 == DISABLED_COMMAND) {
+            if (command.type1 == DISABLED_COMMAND) {
                 procDisabledCommand(command);
                 continue;
             }
-            if ((command.TYPE1 == ASQL_SINGLE) || (command.TYPE1 == ASQL_DB_COMMAND) || (
-                    command.TYPE1 == ASQL_MULTIPLE)) {
-                if ((command.TYPE2 == ASQL_CANCEL) || (execute(command))) {
+            if ((command.type1 == ASQL_SINGLE) || (command.type1 == ASQL_DB_COMMAND) || (
+                    command.type1 == ASQL_MULTIPLE)) {
+                if ((command.type2 == ASQL_CANCEL) || (execute(command))) {
                     continue;
                 }
                 break;
             }
-            if (command.TYPE1 == ASQL_SQL_FILE) {
+            if (command.type1 == ASQL_SQL_FILE) {
                 if (execute(command)) {
                     continue;
                 }
                 break;
             }
             if (isConnected()) {
-                if ((command.TYPE2 == ASQL_CANCEL) || (execute(command))) {
+                if ((command.type2 == ASQL_CANCEL) || (execute(command))) {
                     continue;
                 }
                 break;
@@ -942,8 +903,7 @@ public abstract class CommandExecutor extends SQLExecutor
         disconnect();
     }
 
-    public final void clearWarnings(Statement statement, CommandLog log)
-    {
+    public final void clearWarnings(Statement statement, CommandLog log) {
         try {
             SQLWarning localSQLWarning = statement.getWarnings();
             if (localSQLWarning != null) {
@@ -955,8 +915,7 @@ public abstract class CommandExecutor extends SQLExecutor
         }
     }
 
-    public final void executeScript(Connection connection, Command command, CommandLog log)
-    {
+    public final void executeScript(Connection connection, Command command, CommandLog log) {
         VariableTable table = new VariableTable();
         executeScript(connection, command, table, log);
     }
@@ -964,14 +923,13 @@ public abstract class CommandExecutor extends SQLExecutor
     public final void executeScript(Connection connection,
                                     Command command,
                                     VariableTable table,
-                                    CommandLog log)
-    {
-        int i = 0;
-        int j = -1;
-        boolean bool = false;
-        ResultSet localResultSet = null;
+                                    CommandLog log) {
+        int          i                 = 0;
+        int          j                 = -1;
+        boolean      bool              = false;
+        ResultSet    localResultSet    = null;
         SQLStatement localSQLStatement = null;
-        String str = command.COMMAND;
+        String       str               = command.command;
         if (str == null) {
             return;
         }
@@ -990,7 +948,7 @@ public abstract class CommandExecutor extends SQLExecutor
             }
             localSQLStatement.bind(table);
             this.currentStmt = localSQLStatement.stmt;
-            bool = localSQLStatement.stmt.execute();
+            bool             = localSQLStatement.stmt.execute();
             do {
                 if (bool) {
                     localResultSet = localSQLStatement.stmt.getResultSet();
@@ -1008,11 +966,12 @@ public abstract class CommandExecutor extends SQLExecutor
                     if (j >= 0) {
                         log.print(j);
                     } else if (this.showComplete) {
-                        int length = Math.min(100, command.COMMAND.length());
-                        Vector words = TextUtils.getWords(command.COMMAND.substring(0, length));
+                        int      length         = Math.min(100, command.command.length());
+                        Vector   words          = TextUtils
+                                .getWords(command.command.substring(0, length));
                         String[] arrayOfString1 = TextUtils.toStringArray(words);
-                        String[] arrayOfString2 = getCommandType().getCommandHint();
-                        int k = commandAt(arrayOfString2, arrayOfString1);
+                        String[] arrayOfString2 = getCmdType().getCommandHint();
+                        int      k              = commandAt(arrayOfString2, arrayOfString1);
                         if (k != -1) {
                             log.println(arrayOfString2[k] + " Succeed.");
                         } else {
@@ -1034,7 +993,7 @@ public abstract class CommandExecutor extends SQLExecutor
             }
         }
         this.currentStmt = null;
-        this.resultSet = null;
+        this.resultSet   = null;
         clearWarnings(connection, log);
     }
 
@@ -1042,23 +1001,22 @@ public abstract class CommandExecutor extends SQLExecutor
                           ResultSet paramResultSet,
                           String paramString1,
                           String paramString2,
-                          boolean paramBoolean) throws SQLException, IOException
-    {
-        long l1 = 0L;
-        String str1 = null;
-        int i = 0;
-        int j = 32768;
-        byte[] arrayOfByte1 = new byte[8192];
-        char[] arrayOfChar1 = new char[4096];
-        byte[] arrayOfByte2 = new byte[65536];
-        char[] arrayOfChar2 = new char[65536];
-        long l2 = System.currentTimeMillis();
+                          boolean paramBoolean) throws SQLException, IOException {
+        long              l1                     = 0L;
+        String            str1                   = null;
+        int               i                      = 0;
+        int               j                      = 32768;
+        byte[]            arrayOfByte1           = new byte[8192];
+        char[]            arrayOfChar1           = new char[4096];
+        byte[]            arrayOfByte2           = new byte[65536];
+        char[]            arrayOfChar2           = new char[65536];
+        long              l2                     = System.currentTimeMillis();
         ResultSetMetaData localResultSetMetaData = paramResultSet.getMetaData();
-        int k = localResultSetMetaData.getColumnCount();
-        int[] arrayOfInt = new int[k];
-        SimpleDateFormat localSimpleDateFormat1 = new SimpleDateFormat("yyyy-MM-dd");
-        SimpleDateFormat localSimpleDateFormat2 = new SimpleDateFormat("HH:mm:ss");
-        SimpleDateFormat localSimpleDateFormat3 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+        int               k                      = localResultSetMetaData.getColumnCount();
+        int[]             arrayOfInt             = new int[k];
+        SimpleDateFormat  localSimpleDateFormat1 = new SimpleDateFormat("yyyy-MM-dd");
+        SimpleDateFormat  localSimpleDateFormat2 = new SimpleDateFormat("HH:mm:ss");
+        SimpleDateFormat  localSimpleDateFormat3 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         for (int m = 0; m < k; m++) {
             arrayOfInt[m] = localResultSetMetaData.getColumnType(m + 1);
             if (!paramBoolean) {
@@ -1082,140 +1040,140 @@ public abstract class CommandExecutor extends SQLExecutor
                 Object localObject1;
                 Object localObject2;
                 switch (arrayOfInt[(m - 1)]) {
-                case -1:
-                    Reader localReader = paramResultSet.getCharacterStream(m);
-                    if (localReader == null) {
-                        break;
-                    }
-                    try {
-                        i = localReader.read(arrayOfChar2);
-                        if (i > 0) {
-                            paramBufferedWriter.write(arrayOfChar2, 0, i);
+                    case -1:
+                        Reader localReader = paramResultSet.getCharacterStream(m);
+                        if (localReader == null) {
+                            break;
                         }
-                        localReader.close();
-                    } catch (IOException localIOException1) {
-                    }
-                case -4:
-                    InputStream localInputStream1 = paramResultSet.getBinaryStream(m);
-                    if (localInputStream1 == null) {
-                        break;
-                    }
-                    try {
-                        i = localInputStream1.read(arrayOfByte2);
-                        if (i > 0) {
-                            paramBufferedWriter.write(new String(arrayOfByte2, 0, i));
-                        }
-                        localInputStream1.close();
-                    } catch (IOException localIOException2) {
-                    }
-                case 2005:
-                    Clob localClob = paramResultSet.getClob(m);
-                    if (localClob == null) {
-                        break;
-                    }
-                    localObject1 = localClob.getCharacterStream();
-                    if (localObject1 == null) {
-                        break;
-                    }
-                    try {
-                        i = ((Reader) localObject1).read(arrayOfChar2);
-                        if (i > 0) {
-                            paramBufferedWriter.write(arrayOfChar2, 0, i);
-                        }
-                        ((Reader) localObject1).close();
-                    } catch (IOException localIOException3) {
-                    }
-                case 2004:
-                    localObject1 = paramResultSet.getBlob(m);
-                    if (localObject1 == null) {
-                        break;
-                    }
-                    localObject2 = ((Blob) localObject1).getBinaryStream();
-                    if (localObject2 == null) {
-                        break;
-                    }
-                    try {
-                        i = ((InputStream) localObject2).read(arrayOfByte2);
-                        if (i > 0) {
-                            paramBufferedWriter.write(new String(arrayOfByte2, 0, i));
-                        }
-                        ((InputStream) localObject2).close();
-                    } catch (IOException localIOException4) {
-                    }
-                case 1:
-                case 12:
-                    localObject2 = paramResultSet.getCharacterStream(m);
-                    if (localObject2 == null) {
-                        break;
-                    }
-                    try {
-                        i = ((Reader) localObject2).read(arrayOfChar1);
-                        if (arrayOfInt[(m - 1)] == 1) {
-                            while ((i > 0) && (arrayOfChar1[(i - 1)] == ' ')) {
-                                i--;
+                        try {
+                            i = localReader.read(arrayOfChar2);
+                            if (i > 0) {
+                                paramBufferedWriter.write(arrayOfChar2, 0, i);
                             }
+                            localReader.close();
+                        } catch (IOException localIOException1) {
                         }
-                        if (i > 0) {
-                            paramBufferedWriter.write(arrayOfChar1, 0, i);
+                    case -4:
+                        InputStream localInputStream1 = paramResultSet.getBinaryStream(m);
+                        if (localInputStream1 == null) {
+                            break;
                         }
-                        ((Reader) localObject2).close();
-                    } catch (IOException localIOException5) {
-                    }
-                case -3:
-                case -2:
-                    InputStream localInputStream2 = paramResultSet.getAsciiStream(m);
-                    if (localInputStream2 == null) {
-                        break;
-                    }
-                    try {
-                        i = localInputStream2.read(arrayOfByte1);
-                        if (arrayOfInt[(m - 1)] == -2) {
-                            while ((i > 0) && (arrayOfByte1[(i - 1)] == 32)) {
-                                i--;
+                        try {
+                            i = localInputStream1.read(arrayOfByte2);
+                            if (i > 0) {
+                                paramBufferedWriter.write(new String(arrayOfByte2, 0, i));
                             }
+                            localInputStream1.close();
+                        } catch (IOException localIOException2) {
                         }
-                        if (i > 0) {
-                            paramBufferedWriter.write(new String(arrayOfByte1, 0, i));
+                    case 2005:
+                        Clob localClob = paramResultSet.getClob(m);
+                        if (localClob == null) {
+                            break;
                         }
-                        localInputStream2.close();
-                    } catch (IOException localIOException6) {
-                    }
-                case 91:
-                    java.sql.Date localDate = paramResultSet.getDate(m);
-                    if (localDate == null) {
+                        localObject1 = localClob.getCharacterStream();
+                        if (localObject1 == null) {
+                            break;
+                        }
+                        try {
+                            i = ((Reader) localObject1).read(arrayOfChar2);
+                            if (i > 0) {
+                                paramBufferedWriter.write(arrayOfChar2, 0, i);
+                            }
+                            ((Reader) localObject1).close();
+                        } catch (IOException localIOException3) {
+                        }
+                    case 2004:
+                        localObject1 = paramResultSet.getBlob(m);
+                        if (localObject1 == null) {
+                            break;
+                        }
+                        localObject2 = ((Blob) localObject1).getBinaryStream();
+                        if (localObject2 == null) {
+                            break;
+                        }
+                        try {
+                            i = ((InputStream) localObject2).read(arrayOfByte2);
+                            if (i > 0) {
+                                paramBufferedWriter.write(new String(arrayOfByte2, 0, i));
+                            }
+                            ((InputStream) localObject2).close();
+                        } catch (IOException localIOException4) {
+                        }
+                    case 1:
+                    case 12:
+                        localObject2 = paramResultSet.getCharacterStream(m);
+                        if (localObject2 == null) {
+                            break;
+                        }
+                        try {
+                            i = ((Reader) localObject2).read(arrayOfChar1);
+                            if (arrayOfInt[(m - 1)] == 1) {
+                                while ((i > 0) && (arrayOfChar1[(i - 1)] == ' ')) {
+                                    i--;
+                                }
+                            }
+                            if (i > 0) {
+                                paramBufferedWriter.write(arrayOfChar1, 0, i);
+                            }
+                            ((Reader) localObject2).close();
+                        } catch (IOException localIOException5) {
+                        }
+                    case -3:
+                    case -2:
+                        InputStream localInputStream2 = paramResultSet.getAsciiStream(m);
+                        if (localInputStream2 == null) {
+                            break;
+                        }
+                        try {
+                            i = localInputStream2.read(arrayOfByte1);
+                            if (arrayOfInt[(m - 1)] == -2) {
+                                while ((i > 0) && (arrayOfByte1[(i - 1)] == 32)) {
+                                    i--;
+                                }
+                            }
+                            if (i > 0) {
+                                paramBufferedWriter.write(new String(arrayOfByte1, 0, i));
+                            }
+                            localInputStream2.close();
+                        } catch (IOException localIOException6) {
+                        }
+                    case 91:
+                        java.sql.Date localDate = paramResultSet.getDate(m);
+                        if (localDate == null) {
+                            break;
+                        }
+                        paramBufferedWriter.write(localSimpleDateFormat1.format(localDate));
                         break;
-                    }
-                    paramBufferedWriter.write(localSimpleDateFormat1.format(localDate));
-                    break;
-                case 92:
-                    Time localTime = paramResultSet.getTime(m);
-                    if (localTime == null) {
+                    case 92:
+                        Time localTime = paramResultSet.getTime(m);
+                        if (localTime == null) {
+                            break;
+                        }
+                        paramBufferedWriter.write(localSimpleDateFormat2.format(localTime));
                         break;
-                    }
-                    paramBufferedWriter.write(localSimpleDateFormat2.format(localTime));
-                    break;
-                case 93:
-                    Timestamp localTimestamp = paramResultSet.getTimestamp(m);
-                    if (localTimestamp == null) {
+                    case 93:
+                        Timestamp localTimestamp = paramResultSet.getTimestamp(m);
+                        if (localTimestamp == null) {
+                            break;
+                        }
+                        paramBufferedWriter.write(localSimpleDateFormat3.format(localTimestamp));
                         break;
-                    }
-                    paramBufferedWriter.write(localSimpleDateFormat3.format(localTimestamp));
-                    break;
-                case 0:
-                case 70:
-                case 1111:
-                case 2000:
-                case 2001:
-                case 2002:
-                case 2003:
-                case 2006:
-                    break;
-                default:
-                    String str2 = paramResultSet.getString(m);
-                    if (str2 == null) {
+                    case 0:
+                    case 70:
+                    case 1111:
+                    case 2000:
+                    case 2001:
+                    case 2002:
+                    case 2003:
+                    case 2006:
                         break;
-                    }
-                    paramBufferedWriter.write(str2);
+                    default:
+                        String str2 = paramResultSet.getString(m);
+                        if (str2 == null) {
+                            break;
+                        }
+                        paramBufferedWriter.write(str2);
                 }
                 if (m < k) {
                     paramBufferedWriter.write(paramString1);
@@ -1238,8 +1196,7 @@ public abstract class CommandExecutor extends SQLExecutor
         return l1;
     }
 
-    public final void executeSQL(Connection connection, Command command, CommandLog log)
-    {
+    public final void executeSQL(Connection connection, Command command, CommandLog log) {
         VariableTable localVariableTable = new VariableTable();
         executeSQL(connection, command, localVariableTable, log);
     }
@@ -1247,14 +1204,13 @@ public abstract class CommandExecutor extends SQLExecutor
     public final void executeSQL(Connection connection,
                                  Command command,
                                  VariableTable table,
-                                 CommandLog log)
-    {
-        int i = 0;
-        int j = -1;
-        boolean bool = false;
-        ResultSet rs = null;
+                                 CommandLog log) {
+        int          i         = 0;
+        int          j         = -1;
+        boolean      bool      = false;
+        ResultSet    rs        = null;
         SQLStatement statement = null;
-        String query = command.COMMAND;
+        String       query     = command.command;
         if (query == null) {
             return;
         }
@@ -1280,10 +1236,10 @@ public abstract class CommandExecutor extends SQLExecutor
             }
             statement.bind(table);
             this.currentStmt = statement.stmt;
-            bool = statement.stmt.execute();
+            bool             = statement.stmt.execute();
             do {
                 if (bool) {
-                    rs = statement.stmt.getResultSet();
+                    rs             = statement.stmt.getResultSet();
                     this.resultSet = rs;
                     log.print(rs);
                     this.resultSet = null;
@@ -1296,18 +1252,18 @@ public abstract class CommandExecutor extends SQLExecutor
                         j = -1;
                     }
                     if (j >= 0) {
-                        if ((command.TYPE1 == 0) || (command.TYPE1 == 1)) {
+                        if ((command.type1 == 0) || (command.type1 == 1)) {
                             log.print(j);
                         }
-                    } else if ((command.TYPE1 != 0) && (command.TYPE1 != 1)) {
-                        if (command.TYPE1 == 13) {
+                    } else if ((command.type1 != 0) && (command.type1 != 1)) {
+                        if (command.type1 == 13) {
                             log.println("Procedure executed.");
                         } else if (this.showComplete) {
                             String[] arrayOfString1 = TextUtils.toStringArray(TextUtils.getWords(
-                                    command.COMMAND.substring(0,
-                                            Math.min(100, command.COMMAND.length()))));
-                            String[] arrayOfString2 = getCommandType().getCommandHint();
-                            int k = commandAt(arrayOfString2, arrayOfString1);
+                                    command.command.substring(0,
+                                            Math.min(100, command.command.length()))));
+                            String[] arrayOfString2 = getCmdType().getCommandHint();
+                            int      k              = commandAt(arrayOfString2, arrayOfString1);
                             if (k != -1) {
                                 log.println(arrayOfString2[k] + " Succeed.");
                             } else {
@@ -1329,14 +1285,13 @@ public abstract class CommandExecutor extends SQLExecutor
                 }
             }
         }
-        this.resultSet = null;
+        this.resultSet   = null;
         this.currentStmt = null;
         log.setFormDisplay(false);
         clearWarnings(connection, log);
     }
 
-    public final void executeCall(Connection connection, Command command, CommandLog log)
-    {
+    public final void executeCall(Connection connection, Command command, CommandLog log) {
         VariableTable localVariableTable = new VariableTable();
         executeCall(connection, command, localVariableTable, log);
     }
@@ -1344,14 +1299,13 @@ public abstract class CommandExecutor extends SQLExecutor
     public final void executeCall(Connection connection,
                                   Command command,
                                   VariableTable table,
-                                  CommandLog log)
-    {
-        int i = 0;
-        int j = -1;
-        boolean bool = false;
-        ResultSet localResultSet = null;
+                                  CommandLog log) {
+        int         i                = 0;
+        int         j                = -1;
+        boolean     bool             = false;
+        ResultSet   localResultSet   = null;
         SQLCallable localSQLCallable = null;
-        String str = command.COMMAND;
+        String      str              = command.command;
         if (str == null) {
             return;
         }
@@ -1370,7 +1324,7 @@ public abstract class CommandExecutor extends SQLExecutor
             }
             localSQLCallable.bind(table);
             this.currentStmt = localSQLCallable.stmt;
-            bool = localSQLCallable.stmt.execute();
+            bool             = localSQLCallable.stmt.execute();
             localSQLCallable.fetch(table);
             do {
                 if (bool) {
@@ -1387,10 +1341,10 @@ public abstract class CommandExecutor extends SQLExecutor
                         j = -1;
                     }
                     if (j >= 0) {
-                        if ((command.TYPE1 == 0) || (command.TYPE1 == 1)) {
+                        if ((command.type1 == 0) || (command.type1 == 1)) {
                             log.print(j);
                         }
-                    } else if ((command.TYPE1 != 0) && (command.TYPE1 != 1)
+                    } else if ((command.type1 != 0) && (command.type1 != 1)
                             && (this.showComplete)) {
                         log.println("Procedure executed.");
                     }
@@ -1409,16 +1363,15 @@ public abstract class CommandExecutor extends SQLExecutor
             }
         }
         this.currentStmt = null;
-        this.resultSet = null;
+        this.resultSet   = null;
         clearWarnings(connection, log);
     }
 
-    public final String parseRecord(String paramString)
-    {
+    public final String parseRecord(String paramString) {
         if ((paramString == null) || (paramString.length() == 0)) {
             return "\r\n";
         }
-        char[] arrayOfChar = paramString.toCharArray();
+        char[]       arrayOfChar       = paramString.toCharArray();
         StringBuffer localStringBuffer = new StringBuffer();
         for (int i = 0; i < arrayOfChar.length; i++) {
             if (arrayOfChar[i] == '\\') {
@@ -1458,15 +1411,12 @@ public abstract class CommandExecutor extends SQLExecutor
         return localStringBuffer.toString();
     }
 
-    class CtrlC implements SignalHandler
-    {
+    class CtrlC implements SignalHandler {
 
-        CtrlC()
-        {
+        CtrlC() {
         }
 
-        public void handle(Signal paramSignal)
-        {
+        public void handle(Signal paramSignal) {
             CommandExecutor.this.cancel();
         }
     }

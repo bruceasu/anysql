@@ -1,18 +1,11 @@
 package com.asql.core.io;
 
+/**
+ * @author suk
+ */
 public class DefaultCommandReader extends InputCommandReader {
     public DefaultCommandReader() {
         super(System.in);
     }
 
-    public void close() {
-    }
-
-    public String readPassword()
-            throws Exception {
-        return PasswordReader.readPassword("Password: ");
-    }
-
-    public void setWorkingDir(String paramString) {
-    }
 }

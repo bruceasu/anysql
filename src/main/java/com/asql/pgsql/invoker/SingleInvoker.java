@@ -1,12 +1,12 @@
-package com.asql.oracle.invoker;
+package com.asql.pgsql.invoker;
 
-import static com.asql.oracle.OracleCMDType.*;
+import static com.asql.pgsql.PgSqlCMDType.*;
 
 import com.asql.core.*;
 import com.asql.core.log.CommandLog;
 import com.asql.core.log.OutputCommandLog;
 import com.asql.core.util.TextUtils;
-import com.asql.oracle.OracleSQLExecutor;
+import com.asql.pgsql.PgSqlSQLExecutor;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import java.util.*;
  * @date 2017/8/13
  */
 public class SingleInvoker implements ModuleInvoker {
-    OracleSQLExecutor executor;
+    PgSqlSQLExecutor executor;
     CommandLog out;
     CMDType cmdType;
     public static final Map<Integer, String> DESC_SQLS = new HashMap<Integer, String>() {{
@@ -219,7 +219,7 @@ public class SingleInvoker implements ModuleInvoker {
                 + " WHERE ABS(EXECUTIONS) > 0 AND (BUFFER_GETS > 1000 OR BUFFER_GETS < 0 OR DISK_READS > 50)");
 
     }};
-    public SingleInvoker(OracleSQLExecutor executor) {
+    public SingleInvoker(PgSqlSQLExecutor executor) {
         this.executor = executor;
         out = executor.getCommandLog();
         cmdType = executor.getCmdType();
@@ -229,154 +229,137 @@ public class SingleInvoker implements ModuleInvoker {
     public boolean invoke(Command cmd) {
         int m = executor.getSingleID(cmd.command);
         switch (m) {
-            case ORACLE_CONNECT:
-            case ORACLE_CONN:
+            case PGSQL_CONNECT:
+            case PGSQL_CONN:
                 procConnect(cmd.command);
                 break;
-            case ORACLE_DISCONNECT:
+            case PGSQL_DISCONNECT:
                 executor.procDisconnect(cmd.command);
                 break;
-            case ORACLE_DEBUGLEVEL:
+            case PGSQL_DEBUGLEVEL:
                 procDebugLevel(cmd.command);
                 break;
-            case ORACLE_SCANLIMIT:
+            case PGSQL_SCANLIMIT:
                 procScanLimit(cmd.command);
                 break;
-            case ORACLE_TUNESORT:
+            case PGSQL_TUNESORT:
                 procTunesort(cmd.command);
                 break;
-            case ORACLE_ECHO:
+            case PGSQL_ECHO:
                 procEcho(cmd.command);
                 break;
-            case ORACLE_PAGESIZE:
+            case PGSQL_PAGESIZE:
                 procPageSize(cmd.command);
                 break;
-            case ORACLE_HEADING:
+            case PGSQL_HEADING:
                 procHeading(cmd.command);
                 break;
-            case ORACLE_TERMOUT:
+            case PGSQL_TERMOUT:
                 procTermout(cmd.command);
                 break;
-            case ORACLE_DELIMITER:
+            case PGSQL_DELIMITER:
                 procDelimiter(cmd.command);
                 break;
-            case ORACLE_RECORD:
+            case PGSQL_RECORD:
                 procSetRecord(cmd.command);
                 break;
-            case ORACLE_LOADTNS:
-                procLoadTNS(cmd.command);
-                break;
-            case ORACLE_VAR:
+
+            case PGSQL_VAR:
                 procVariable(cmd.command);
                 break;
-            case ORACLE_UNVAR:
+            case PGSQL_UNVAR:
                 procUnvariable(cmd.command);
                 break;
-            case ORACLE_PRINT:
+            case PGSQL_PRINT:
                 procPrint(cmd.command);
                 break;
-            case ORACLE_AUTOTRACE:
-            case ORACLE_AUTOT:
+            case PGSQL_AUTOTRACE:
+            case PGSQL_AUTOT:
                 procAutotrace(cmd.command);
                 break;
-            case ORACLE_TIMING:
+            case PGSQL_TIMING:
                 procTiming(cmd.command);
                 break;
-            case ORACLE_DRIVER:
-                procDriver(cmd.command);
-                break;
-            case ORACLE_AUTOCOMMIT:
+            case PGSQL_AUTOCOMMIT:
                 procAutoCommit(cmd.command);
                 break;
-            case ORACLE_QUERYONLY:
+            case PGSQL_QUERYONLY:
                 procQueryOnly(cmd.command);
                 break;
-            case ORACLE_FETCHSIZE:
+            case PGSQL_FETCHSIZE:
                 procFetchSize(cmd.command);
                 break;
-            case ORACLE_DEFINE:
+            case PGSQL_DEFINE:
                 procDefine(cmd.command);
                 break;
-            case ORACLE_SQLSET:
+            case PGSQL_SQLSET:
                 procSQLSet(cmd.command);
                 break;
-            case ORACLE_SPOOLAPPEND:
+            case PGSQL_SPOOLAPPEND:
                 procSpoolAppend(cmd.command);
                 break;
-            case ORACLE_SPOOL:
+            case PGSQL_SPOOL:
                 procSpool(cmd.command);
                 break;
-            case ORACLE_READ:
+            case PGSQL_READ:
                 procRead(cmd.command);
                 break;
-            case ORACLE_HELP:
+            case PGSQL_HELP:
                 procHelp(cmd.command);
                 break;
-            case ORACLE_SPOOLOFF:
+            case PGSQL_SPOOLOFF:
                 procSpoolOff(cmd.command);
                 break;
-            case ORACLE_LCOMMAND:
+            case PGSQL_LCOMMAND:
                 procListCommand(cmd.command);
                 break;
-            case ORACLE_BUFFER_ADD:
+            case PGSQL_BUFFER_ADD:
                 procBUFFERADD(cmd.command);
                 break;
-            case ORACLE_BUFFER_LIST:
+            case PGSQL_BUFFER_LIST:
                 procBUFFERLIST(cmd.command);
                 break;
-            case ORACLE_BUFFER_RESET:
+            case PGSQL_BUFFER_RESET:
                 procBUFFERRESET(cmd.command);
                 break;
-            case ORACLE_ENCODING:
+            case PGSQL_ENCODING:
                 procEncoding(cmd.command);
                 break;
-            case ORACLE_LOCALE:
+            case PGSQL_LOCALE:
                 procLocale(cmd.command);
                 break;
-            case ORACLE_READONLY:
+            case PGSQL_READONLY:
                 procReadonly(cmd.command);
                 break;
-            case ORACLE_OLHASH:
+            case PGSQL_OLHASH:
                 procOLHash(cmd.command);
                 break;
-            case ORACLE_OLDROP:
+            case PGSQL_OLDROP:
                 procOLDrop(cmd.command);
                 break;
-            case ORACLE_OLSHIFT:
+            case PGSQL_OLSHIFT:
                 procOLShift(cmd.command);
                 break;
-            case ORACLE_OLSHOW:
+            case PGSQL_OLSHOW:
                 procOLShow(cmd.command);
                 break;
-            case ORACLE_OLMOVE:
+            case PGSQL_OLMOVE:
                 procOLMove(cmd.command);
                 break;
-            case ORACLE_OLLIST:
+            case PGSQL_OLLIST:
                 procOLList(cmd.command);
                 break;
-            case ORACLE_OLSQL:
+            case PGSQL_OLSQL:
                 procOLSQL(cmd.command);
                 break;
-            case ORACLE_OLRENAME:
+            case PGSQL_OLRENAME:
                 procOLRename(cmd.command);
                 break;
-            case ORACLE_OL:
+            case PGSQL_OL:
                 procOL(cmd.command);
         }
 
         return true;
-    }
-
-    void procDriver(String paramString) {
-        int i = TextUtils.getWords(cmdType.getASQLSingle()[12]).size();
-        String str = executor.skipWord(paramString, i);
-        str = str.trim();
-        if ((!str.equalsIgnoreCase("THIN")) && (!str.equalsIgnoreCase("OCI")) && (!str.equalsIgnoreCase("DATADIRECT"))) {
-            out.println("Usage: SET DRIVER { THIN | OCI | DATADIRECT }");
-            return;
-        }
-        executor.oracleDriver = str;
-        out.println("Oracle driver set to : " + str);
     }
 
     void procAutotrace(String paramString) {
@@ -732,44 +715,37 @@ public class SingleInvoker implements ModuleInvoker {
     }
 
     void procConnect(String paramString) {
-        int i = TextUtils.getWords(cmdType.getASQLSingle()[0]).size();
-        Object localObject1 = executor.skipWord(paramString, i);
-        Object localObject2 = "";
-        String str1 = "";
-        String str2 = "";
-        localObject1 = ((String) localObject1).trim();
-        Properties localProperties = DBConnection.getProperties("ORACLE");
-        String[] arrayOfString = TextUtils.toStringArray(TextUtils.getWords((String) localObject1));
-        if (arrayOfString.length == 3) {
-            if (("AS".equalsIgnoreCase(arrayOfString[1])) && (("SYSDBA".equalsIgnoreCase(arrayOfString[2])) || ("SYSOPER".equalsIgnoreCase(arrayOfString[2]))))
-                localProperties.setProperty("internal_logon", arrayOfString[2].toLowerCase());
-            localObject1 = arrayOfString[0];
-        }
-        int j = -1;
-        j = ((String) localObject1).indexOf("@");
+        int i = TextUtils.getWords(cmdType.getASQLSingle()[PGSQL_CONNECT]).size();
+        String connstr = executor.skipWord(paramString, i);
+        String host = "";
+        String password = "";
+        String user = "";
+        connstr = connstr.trim();
+        Properties dbProp = DBConnection.getProperties("PGSQL");
+
+        int j = connstr.indexOf("@");
         if (j == -1) {
-            localObject2 = localObject1;
-            str2 = "";
+            user = connstr;
+            host = "";
         } else {
-            localObject2 = ((String) localObject1).substring(0, j);
-            str2 = ((String) localObject1).substring(j + 1);
+            user = connstr.substring(0, j);
+            host = connstr.substring(j + 1);
         }
-        localObject1 = localObject2;
-        j = ((String) localObject1).indexOf("/");
+
+        j = user.indexOf("/");
         if (j == -1) {
             try {
-                str1 = executor.in.readPassword();
+                password = executor.in.readPassword();
             } catch (Exception localException) {
             }
         } else {
-            localObject2 = ((String) localObject1).substring(0, j);
-            str1 = ((String) localObject1).substring(j + 1);
+            password = user.substring(j + 1);
+            user = user.substring(0, j);
         }
-        if ((str2.length() > 0) && (executor.tnsnames.exists(str2)) && (executor.tnsnames.getValue(str2) != null))
-            str2 = (String) executor.tnsnames.getValue(str2);
+
         if (executor.getDebugLevel() > 0) {
-            out.println("==================== TNS Name ====================");
-            out.println((String) localObject2 + "@" + str2);
+            out.println("==================== Name ====================");
+            out.println(user + "@" + host);
             out.println("==================================================");
             out.println();
         }
@@ -783,12 +759,8 @@ public class SingleInvoker implements ModuleInvoker {
             } catch (SQLException localSQLException1) {
                 out.print(localSQLException1);
             }
-            if (executor.oracleDriver.equalsIgnoreCase("THIN"))
-                executor.database = DBConnection.getConnection("ORACLE", (String) localObject2 + "/" + str1 + "@" + str2, localProperties);
-            else if (executor.oracleDriver.equalsIgnoreCase("OCI"))
-                executor.database = DBConnection.getConnection("ORAOCI", (String) localObject2 + "/" + str1 + "@" + str2, localProperties);
-            else
-                executor.database = DBConnection.getConnection("DDORA", str2, (String) localObject2, str1, localProperties);
+
+            executor.database = DBConnection.getConnection("PGSQL", host, user, password, dbProp);
             executor.database.setAutoCommit(false);
             executor.autoCommit = executor.database.getAutoCommit();
             out.println("database connected.");
@@ -1349,28 +1321,6 @@ public class SingleInvoker implements ModuleInvoker {
         executor.loadBuffer.deleteAllRow();
         executor.loadBuffer.removeAllColumn();
         out.println("Command completed.");
-    }
-
-    void procLoadTNS(String paramString) {
-        int i = TextUtils.getWords(cmdType.getASQLSingle()[7]).size();
-        String str = executor.skipWord(paramString, i);
-        str = str.trim();
-        if (str.length() > 0)
-            executor.loadTNSNames(str);
-        String[] arrayOfString = executor.tnsnames.getNames();
-        out.println("Avaiable TNS entries:");
-        for (int j = 0; j < arrayOfString.length; j++)
-            if ((j + 1) % 3 == 1) {
-                out.print(" ");
-                out.print(executor.lpad(arrayOfString[j], 25));
-            } else {
-                out.print(executor.lpad(arrayOfString[j], 25));
-                if ((j + 1) % 3 != 0)
-                    continue;
-                out.println();
-            }
-        if (arrayOfString.length % 3 != 0)
-            out.println();
     }
 
     void closeQuietly(AutoCloseable closeable) {

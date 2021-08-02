@@ -6,8 +6,7 @@ import com.asql.core.util.TextUtils;
 import java.io.IOException;
 import java.util.Vector;
 
-public abstract class CMDType
-{
+public abstract class CMDType {
 
     public static final int SQL_QUERY           = 0;
     public static final int SQL_DML             = 1;
@@ -28,63 +27,59 @@ public abstract class CMDType
     public static final int ASQL_SQL_FILE       = 16;
     public static final int ASQL_DB_COMMAND     = 17;
     public static final int DISABLED_COMMAND    = 18;
-    
+
     private boolean multi_comment = false;
     private boolean query_only    = true;
 
-    public final void setQueryOnly(boolean paramBoolean)
-    {
+    public final void setQueryOnly(boolean paramBoolean) {
         this.query_only = paramBoolean;
     }
 
-    public final boolean getQueryOnly()
-    {
+    public final boolean getQueryOnly() {
         return this.query_only;
     }
 
-    public static final String getName(int paramInt)
-    {
+    public static final String getName(int paramInt) {
         switch (paramInt) {
-        case SQL_QUERY:
-            return "SQL_QUERY";
-        case SQL_DML:
-            return "SQL_DML";
-        case SQL_DDL:
-            return "SQL_DDL";
-        case SQL_SCRIPT:
-            return "SQL_SCRIPT";
-        case SQL_CALL:
-            return "SQL_CALL";
-        case ASQL_SINGLE:
-            return "ASQL_SINGLE";
-        case ASQL_MULTIPLE:
-            return "ASQL_MULTIPLE";
-        case ASQL_END:
-            return "ASQL_END";
-        case ASQL_EXIT:
-            return "ASQL_EXIT";
-        case ASQL_CANCEL:
-            return "ASQL_CANCEL";
-        case ASQL_COMMENT:
-            return "ASQL_COMMENT";
-        case UNKNOWN_COMMAND:
-            return "UNKNOWN_COMMAND";
-        case NULL_COMMAND:
-            return "NULL_COMMAND";
-        case SQL_BLOCK:
-            return "SQL_BLOCK";
-        case ASQL_SQL_FILE:
-            return "ASQL_SQLFILE";
-        case MULTI_COMMENT_START:
-            return "/*";
-        case MULTI_COMMENT_END:
-            return "*/";
+            case SQL_QUERY:
+                return "SQL_QUERY";
+            case SQL_DML:
+                return "SQL_DML";
+            case SQL_DDL:
+                return "SQL_DDL";
+            case SQL_SCRIPT:
+                return "SQL_SCRIPT";
+            case SQL_CALL:
+                return "SQL_CALL";
+            case ASQL_SINGLE:
+                return "ASQL_SINGLE";
+            case ASQL_MULTIPLE:
+                return "ASQL_MULTIPLE";
+            case ASQL_END:
+                return "ASQL_END";
+            case ASQL_EXIT:
+                return "ASQL_EXIT";
+            case ASQL_CANCEL:
+                return "ASQL_CANCEL";
+            case ASQL_COMMENT:
+                return "ASQL_COMMENT";
+            case UNKNOWN_COMMAND:
+                return "UNKNOWN_COMMAND";
+            case NULL_COMMAND:
+                return "NULL_COMMAND";
+            case SQL_BLOCK:
+                return "SQL_BLOCK";
+            case ASQL_SQL_FILE:
+                return "ASQL_SQLFILE";
+            case MULTI_COMMENT_START:
+                return "/*";
+            case MULTI_COMMENT_END:
+                return "*/";
         }
         return "UNKNOWN_COMMAND";
     }
 
-    public final String getPrompt(int paramInt)
-    {
+    public final String getPrompt(int paramInt) {
         if (paramInt <= 1) {
             if (this.multi_comment) {
                 return "ADOC> ";
@@ -92,7 +87,7 @@ public abstract class CMDType
             return "ASQL> ";
         }
         StringBuffer localStringBuffer = new StringBuffer();
-        String str = String.valueOf(paramInt);
+        String       str               = String.valueOf(paramInt);
         for (int i = 0; i < 5 - str.length(); i++) {
             localStringBuffer.append(' ');
         }
@@ -137,13 +132,11 @@ public abstract class CMDType
 
     public abstract String[] getCommandHint();
 
-    public String[] getExit()
-    {
+    public String[] getExit() {
         return new String[]{"EXIT", "QUIT"};
     }
 
-    public final int endsWith(String[] paramArrayOfString, String paramString)
-    {
+    public final int endsWith(String[] paramArrayOfString, String paramString) {
         if ((paramString == null) && (paramString.length() == 0)) {
             return -1;
         }
@@ -163,13 +156,11 @@ public abstract class CMDType
         return -1;
     }
 
-    private boolean isWhiteSpace(int j)
-    {
+    private boolean isWhiteSpace(int j) {
         return (j == ' ') || (j == 9) || (j == 13) || (j == 10);
     }
 
-    public final int startsWith(String[] paramArrayOfString, String paramString)
-    {
+    public final int startsWith(String[] paramArrayOfString, String paramString) {
         if ((paramString == null) && (paramString.length() == 0)) {
             return -1;
         }
@@ -187,8 +178,7 @@ public abstract class CMDType
         return -1;
     }
 
-    private final boolean commandCheck(String[] paramArrayOfString1, String[] paramArrayOfString2)
-    {
+    private final boolean commandCheck(String[] paramArrayOfString1, String[] paramArrayOfString2) {
         if (paramArrayOfString2 == null) {
             return false;
         }
@@ -226,8 +216,7 @@ public abstract class CMDType
         return false;
     }
 
-    private final boolean commandEqual(String[] paramArrayOfString1, String[] paramArrayOfString2)
-    {
+    private final boolean commandEqual(String[] paramArrayOfString1, String[] paramArrayOfString2) {
         if (paramArrayOfString2 == null) {
             return false;
         }
@@ -262,8 +251,7 @@ public abstract class CMDType
         return false;
     }
 
-    public final int getCommandID(String paramString)
-    {
+    public final int getCommandID(String paramString) {
         int i = matchLastChar(paramString, getContinueChar());
         if (i == -1) {
             i = matchLastChar(paramString, getCompleteChar());
@@ -327,8 +315,7 @@ public abstract class CMDType
         return UNKNOWN_COMMAND;
     }
 
-    private int matchLastChar(String paramString, char paramChar)
-    {
+    private int matchLastChar(String paramString, char paramChar) {
         if (paramString == null) {
             return -1;
         }
@@ -353,46 +340,44 @@ public abstract class CMDType
         return -1;
     }
 
-    public final boolean isCommandReady(int paramInt1, int paramInt2, String paramString)
-    {
+    public final boolean isCommandReady(int paramInt1, int paramInt2, String paramString) {
         switch (paramInt1) {
-        case ASQL_END:
-        case ASQL_EXIT:
-        case ASQL_CANCEL:
-        case UNKNOWN_COMMAND:
-        case ASQL_COMMENT:
-        case NULL_COMMAND:
-        case MULTI_COMMENT_START:
-        case DISABLED_COMMAND:
-            return true;
-        case SQL_CALL:
-        case ASQL_SINGLE:
-        case ASQL_SQL_FILE:
-        case ASQL_DB_COMMAND:
-            return matchLastChar(paramString, getContinueChar()) < 0;
-        case SQL_SCRIPT:
-        case SQL_BLOCK:
-            return (paramInt2 == ASQL_END) || (paramInt2 == ASQL_CANCEL);
-        case SQL_QUERY:
-        case SQL_DML:
-        case SQL_DDL:
-        case ASQL_MULTIPLE:
-            if ((paramInt2 == ASQL_END) || (paramInt2 == ASQL_CANCEL)) {
+            case ASQL_END:
+            case ASQL_EXIT:
+            case ASQL_CANCEL:
+            case UNKNOWN_COMMAND:
+            case ASQL_COMMENT:
+            case NULL_COMMAND:
+            case MULTI_COMMENT_START:
+            case DISABLED_COMMAND:
                 return true;
-            }
-            return matchLastChar(paramString, getCompleteChar()) >= 0;
-        case MULTI_COMMENT_END:
+            case SQL_CALL:
+            case ASQL_SINGLE:
+            case ASQL_SQL_FILE:
+            case ASQL_DB_COMMAND:
+                return matchLastChar(paramString, getContinueChar()) < 0;
+            case SQL_SCRIPT:
+            case SQL_BLOCK:
+                return (paramInt2 == ASQL_END) || (paramInt2 == ASQL_CANCEL);
+            case SQL_QUERY:
+            case SQL_DML:
+            case SQL_DDL:
+            case ASQL_MULTIPLE:
+                if ((paramInt2 == ASQL_END) || (paramInt2 == ASQL_CANCEL)) {
+                    return true;
+                }
+                return matchLastChar(paramString, getCompleteChar()) >= 0;
+            case MULTI_COMMENT_END:
         }
         return true;
     }
 
-    public final Command readCommand(CommandReader paramCommandReader) throws IOException
-    {
+    public final Command readCommand(CommandReader paramCommandReader) throws IOException {
         Vector localVector = new Vector(10, 10);
-        String str = null;
-        int i = -1;
-        int j = -1;
-        int k = -1;
+        String str         = null;
+        int    i           = -1;
+        int    j           = -1;
+        int    k           = -1;
         while ((str = paramCommandReader.readline()) != null) {
             if (i == -1) {
                 i = getCommandID(str);
@@ -402,7 +387,7 @@ public abstract class CMDType
             }
             if (this.multi_comment) {
                 if (endsWith(getMultipleEnd(), str) != -1) {
-                    j = MULTI_COMMENT_END;
+                    j                  = MULTI_COMMENT_END;
                     this.multi_comment = false;
                 } else {
                     j = getCommandID(str);
@@ -412,25 +397,77 @@ public abstract class CMDType
             }
             if (isCommandReady(i, j, str)) {
                 switch (i) {
-                case SQL_SCRIPT:
-                case SQL_BLOCK:
-                    break;
-                case SQL_QUERY:
-                case SQL_DML:
-                case SQL_DDL:
-                case ASQL_MULTIPLE:
-                    if ((j == ASQL_END) || (j == ASQL_CANCEL)) {
+                    case SQL_SCRIPT:
+                    case SQL_BLOCK:
                         break;
-                    }
-                    k = matchLastChar(str, getCompleteChar());
-                    if (k >= 0) {
-                        localVector.addElement(str.substring(0, k));
-                    } else {
+                    case SQL_QUERY:
+                    case SQL_DML:
+                    case SQL_DDL:
+                    case ASQL_MULTIPLE:
+                        if ((j == ASQL_END) || (j == ASQL_CANCEL)) {
+                            break;
+                        }
+                        k = matchLastChar(str, getCompleteChar());
+                        if (k >= 0) {
+                            localVector.addElement(str.substring(0, k));
+                        } else {
+                            localVector.addElement(str);
+                        }
+                        break;
+                    case SQL_CALL:
+                    case ASQL_SINGLE:
+                    case ASQL_SQL_FILE:
+                    case ASQL_DB_COMMAND:
+                        k = matchLastChar(str, getContinueChar());
+                        if (k == -1) {
+                            k = matchLastChar(str, getCompleteChar());
+                        }
+                        if (k > -1) {
+                            localVector.addElement(str.substring(0, k));
+                        } else {
+                            localVector.addElement(str);
+                        }
+                        break;
+                    case ASQL_END:
+                    case ASQL_EXIT:
+                    case ASQL_CANCEL:
+                    case UNKNOWN_COMMAND:
+                        k = matchLastChar(str, getContinueChar());
+                        if (k == -1) {
+                            k = matchLastChar(str, getCompleteChar());
+                        }
+                        if (k > -1) {
+                            localVector.addElement(str.substring(0, k));
+                        } else {
+                            localVector.addElement(str);
+                        }
+                        break;
+                    case ASQL_COMMENT:
                         localVector.addElement(str);
-                    }
-                    break;
-                case SQL_CALL:
+                        if (j != MULTI_COMMENT_END) {
+                            break;
+                        }
+                        this.multi_comment = false;
+                        break;
+                    case MULTI_COMMENT_START:
+                        localVector.addElement(str);
+                        if (j != MULTI_COMMENT_END) {
+                            break;
+                        }
+                        this.multi_comment = false;
+                    case NULL_COMMAND:
+                    case MULTI_COMMENT_END:
+                }
+                break;
+            }
+            switch (i) {
                 case ASQL_SINGLE:
+                case ASQL_END:
+                case ASQL_EXIT:
+                case ASQL_CANCEL:
+                case UNKNOWN_COMMAND:
+                case ASQL_COMMENT:
+                case NULL_COMMAND:
                 case ASQL_SQL_FILE:
                 case ASQL_DB_COMMAND:
                     k = matchLastChar(str, getContinueChar());
@@ -439,68 +476,16 @@ public abstract class CMDType
                     }
                     if (k > -1) {
                         localVector.addElement(str.substring(0, k));
-                    } else {
-                        localVector.addElement(str);
+                        continue;
                     }
-                    break;
-                case ASQL_END:
-                case ASQL_EXIT:
-                case ASQL_CANCEL:
-                case UNKNOWN_COMMAND:
-                    k = matchLastChar(str, getContinueChar());
-                    if (k == -1) {
-                        k = matchLastChar(str, getCompleteChar());
-                    }
-                    if (k > -1) {
-                        localVector.addElement(str.substring(0, k));
-                    } else {
-                        localVector.addElement(str);
-                    }
-                    break;
-                case ASQL_COMMENT:
                     localVector.addElement(str);
-                    if (j != MULTI_COMMENT_END) {
-                        break;
-                    }
-                    this.multi_comment = false;
                     break;
+                case ASQL_MULTIPLE:
+                case SQL_BLOCK:
                 case MULTI_COMMENT_START:
-                    localVector.addElement(str);
-                    if (j != MULTI_COMMENT_END) {
-                        break;
-                    }
-                    this.multi_comment = false;
-                case NULL_COMMAND:
                 case MULTI_COMMENT_END:
-                }
-                break;
-            }
-            switch (i) {
-            case ASQL_SINGLE:
-            case ASQL_END:
-            case ASQL_EXIT:
-            case ASQL_CANCEL:
-            case UNKNOWN_COMMAND:
-            case ASQL_COMMENT:
-            case NULL_COMMAND:
-            case ASQL_SQL_FILE:
-            case ASQL_DB_COMMAND:
-                k = matchLastChar(str, getContinueChar());
-                if (k == -1) {
-                    k = matchLastChar(str, getCompleteChar());
-                }
-                if (k > -1) {
-                    localVector.addElement(str.substring(0, k));
-                    continue;
-                }
-                localVector.addElement(str);
-                break;
-            case ASQL_MULTIPLE:
-            case SQL_BLOCK:
-            case MULTI_COMMENT_START:
-            case MULTI_COMMENT_END:
-            default:
-                localVector.addElement(str);
+                default:
+                    localVector.addElement(str);
             }
         }
         if ((str == null) && (localVector.size() == 0)) {
@@ -518,20 +503,18 @@ public abstract class CMDType
     }
 
     public final Command readCommand(CommandReader paramCommandReader, CommandLog paramCommandLog)
-    throws IOException
-    {
+    throws IOException {
         return readCommand(paramCommandReader, paramCommandLog, false);
     }
 
     public final Command readCommand(CommandReader reader,
                                      CommandLog log,
-                                     boolean paramBoolean) throws IOException
-    {
+                                     boolean paramBoolean) throws IOException {
         Vector localVector = new Vector(10, 10);
-        String str = null;
-        int i = -1;
-        int j = -1;
-        int k = -1;
+        String str         = null;
+        int    i           = -1;
+        int    j           = -1;
+        int    k           = -1;
         log.prompt(getPrompt(localVector.size() + 1));
         while ((str = reader.readline()) != null) {
             if (paramBoolean) {
@@ -547,7 +530,7 @@ public abstract class CMDType
             }
             if (this.multi_comment) {
                 if (endsWith(getMultipleEnd(), str) != -1) {
-                    j = 15;
+                    j                  = 15;
                     this.multi_comment = false;
                 } else {
                     j = getCommandID(str);
@@ -557,25 +540,77 @@ public abstract class CMDType
             }
             if (isCommandReady(i, j, str)) {
                 switch (i) {
-                case SQL_SCRIPT:
-                case SQL_BLOCK:
-                    break;
-                case SQL_QUERY:
-                case SQL_DML:
-                case SQL_DDL:
-                case ASQL_MULTIPLE:
-                    if ((j == ASQL_END) || (j == ASQL_CANCEL)) {
+                    case SQL_SCRIPT:
+                    case SQL_BLOCK:
                         break;
-                    }
-                    k = matchLastChar(str, getCompleteChar());
-                    if (k >= 0) {
-                        localVector.addElement(str.substring(0, k));
-                    } else {
+                    case SQL_QUERY:
+                    case SQL_DML:
+                    case SQL_DDL:
+                    case ASQL_MULTIPLE:
+                        if ((j == ASQL_END) || (j == ASQL_CANCEL)) {
+                            break;
+                        }
+                        k = matchLastChar(str, getCompleteChar());
+                        if (k >= 0) {
+                            localVector.addElement(str.substring(0, k));
+                        } else {
+                            localVector.addElement(str);
+                        }
+                        break;
+                    case SQL_CALL:
+                    case ASQL_SINGLE:
+                    case ASQL_SQL_FILE:
+                    case ASQL_DB_COMMAND:
+                        k = matchLastChar(str, getContinueChar());
+                        if (k == -1) {
+                            k = matchLastChar(str, getCompleteChar());
+                        }
+                        if (k > -1) {
+                            localVector.addElement(str.substring(0, k));
+                        } else {
+                            localVector.addElement(str);
+                        }
+                        break;
+                    case ASQL_END:
+                    case ASQL_EXIT:
+                    case ASQL_CANCEL:
+                    case UNKNOWN_COMMAND:
+                        k = matchLastChar(str, getContinueChar());
+                        if (k == -1) {
+                            k = matchLastChar(str, getCompleteChar());
+                        }
+                        if (k > -1) {
+                            localVector.addElement(str.substring(0, k));
+                        } else {
+                            localVector.addElement(str);
+                        }
+                        break;
+                    case ASQL_COMMENT:
                         localVector.addElement(str);
-                    }
-                    break;
-                case SQL_CALL:
+                        if (j != MULTI_COMMENT_END) {
+                            break;
+                        }
+                        this.multi_comment = false;
+                        break;
+                    case MULTI_COMMENT_START:
+                        localVector.addElement(str);
+                        if (j != MULTI_COMMENT_END) {
+                            break;
+                        }
+                        this.multi_comment = false;
+                    case NULL_COMMAND:
+                    case MULTI_COMMENT_END:
+                }
+                break;
+            }
+            switch (i) {
                 case ASQL_SINGLE:
+                case ASQL_END:
+                case ASQL_EXIT:
+                case ASQL_CANCEL:
+                case UNKNOWN_COMMAND:
+                case ASQL_COMMENT:
+                case NULL_COMMAND:
                 case ASQL_SQL_FILE:
                 case ASQL_DB_COMMAND:
                     k = matchLastChar(str, getContinueChar());
@@ -588,64 +623,12 @@ public abstract class CMDType
                         localVector.addElement(str);
                     }
                     break;
-                case ASQL_END:
-                case ASQL_EXIT:
-                case ASQL_CANCEL:
-                case UNKNOWN_COMMAND:
-                    k = matchLastChar(str, getContinueChar());
-                    if (k == -1) {
-                        k = matchLastChar(str, getCompleteChar());
-                    }
-                    if (k > -1) {
-                        localVector.addElement(str.substring(0, k));
-                    } else {
-                        localVector.addElement(str);
-                    }
-                    break;
-                case ASQL_COMMENT:
-                    localVector.addElement(str);
-                    if (j != MULTI_COMMENT_END) {
-                        break;
-                    }
-                    this.multi_comment = false;
-                    break;
+                case ASQL_MULTIPLE:
+                case SQL_BLOCK:
                 case MULTI_COMMENT_START:
-                    localVector.addElement(str);
-                    if (j != MULTI_COMMENT_END) {
-                        break;
-                    }
-                    this.multi_comment = false;
-                case NULL_COMMAND:
                 case MULTI_COMMENT_END:
-                }
-                break;
-            }
-            switch (i) {
-            case ASQL_SINGLE:
-            case ASQL_END:
-            case ASQL_EXIT:
-            case ASQL_CANCEL:
-            case UNKNOWN_COMMAND:
-            case ASQL_COMMENT:
-            case NULL_COMMAND:
-            case ASQL_SQL_FILE:
-            case ASQL_DB_COMMAND:
-                k = matchLastChar(str, getContinueChar());
-                if (k == -1) {
-                    k = matchLastChar(str, getCompleteChar());
-                }
-                if (k > -1) {
-                    localVector.addElement(str.substring(0, k));
-                } else {
+                default:
                     localVector.addElement(str);
-                }
-                break;
-            case ASQL_MULTIPLE:
-            case SQL_BLOCK:
-            case MULTI_COMMENT_START:
-            case MULTI_COMMENT_END:
-            default:
-                localVector.addElement(str);
             }
             log.prompt(getPrompt(localVector.size() + 1));
         }

@@ -1,6 +1,6 @@
 package com.asql.core;
 
-import com.asql.core.util.JavaVM;
+import com.asql.core.util.JavaVm;
 import com.asql.core.util.TextUtils;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -8,53 +8,60 @@ import java.sql.SQLException;
 import java.util.Locale;
 import java.util.Properties;
 
-public final class DBConnection
-{
+public final class DBConnection {
 
     public static final String[] DBTYPE   = {"ORACLE", "ORAOCI", "SYBASE", "DB2APP", "DB2NET",
-                                             "INFX", "MSSQL", "DDORA", "DDSYB", "DDDB2", "DDMSSQL",
-                                             "DDINFX", "MYSQL", "PGSQL", "SAPDB", "NCR", "AS400",
-                                             "ODBC", "JTDSMSSQL", "JTDSSYB"};
-    public static final String[] DBDRIVER = {"oracle.jdbc.driver.OracleDriver",
-                                             "oracle.jdbc.driver.OracleDriver",
-                                             "com.sybase.jdbc2.jdbc.SybDriver",
-                                             "COM.ibm.db2.jdbc.app.DB2Driver",
-                                             "COM.ibm.db2.jdbc.net.DB2Driver",
-                                             "com.informix.jdbc.IfxDriver",
-                                             "com.microsoft.jdbc.sqlserver.SQLServerDriver",
-                                             "com.ddtek.jdbc.oracle.OracleDriver",
-                                             "com.ddtek.jdbc.sybase.SybaseDriver",
-                                             "com.ddtek.jdbc.db2.DB2Driver",
-                                             "com.ddtek.jdbc.sqlserver.SQLServerDriver",
-                                             "com.ddtek.jdbc.informix.InformixDriver",
-                                             //"com.mysql.jdbc.Driver",
-                                             "com.mysql.cj.jdbc.Driver", "org.postgresql.Driver",
-                                             "com.sap.dbtech.jdbc.DriverSapDB",
-                                             "com.ncr.teradata.TeraDriver",
-                                             "com.ibm.as400.access.AS400JDBCDriver",
-                                             "sun.jdbc.odbc.JdbcOdbcDriver",
-                                             "net.sourceforge.jtds.jdbc.Driver",
-                                             "net.sourceforge.jtds.jdbc.Driver"};
-    public static final String[] DBURL    = {"jdbc:oracle:thin:", "jdbc:oracle:oci8:",
-                                             "jdbc:sybase:Tds:", "jdbc:db2:", "jdbc:db2://",
-                                             "jdbc:informix-sqli://", "jdbc:sqlserver://",
-                                             "jdbc:datadirect:oracle://",
-                                             "jdbc:datadirect:sybase://", "jdbc:datadirect:db2://",
-                                             "jdbc:datadirect:sqlserver://",
-                                             "jdbc:datadirect:infomix://", "jdbc:mysql://",
-                                             "jdbc:postgresql://", "jdbc:sapdb://",
-                                             "jdbc:teradata://", "jdbc:as400://", "jdbc:odbc:",
-                                             "jdbc:jtds:sqlserver://", "jdbc:jtds:sybase://"};
+            "INFX", "MSSQL", "DDORA", "DDSYB", "DDDB2", "DDMSSQL",
+            "DDINFX", "MYSQL", "PGSQL", "SAPDB", "NCR", "AS400",
+            "ODBC", "JTDSMSSQL", "JTDSSYB"};
+    public static final String[] DBDRIVER = {
+            "oracle.jdbc.driver.OracleDriver",
+            "oracle.jdbc.driver.OracleDriver",
+            "com.sybase.jdbc2.jdbc.SybDriver",
+            "COM.ibm.db2.jdbc.app.DB2Driver",
+            "COM.ibm.db2.jdbc.net.DB2Driver",
+            "com.informix.jdbc.IfxDriver",
+            "com.microsoft.jdbc.sqlserver.SQLServerDriver",
+            "com.ddtek.jdbc.oracle.OracleDriver",
+            "com.ddtek.jdbc.sybase.SybaseDriver",
+            "com.ddtek.jdbc.db2.DB2Driver",
+            "com.ddtek.jdbc.sqlserver.SQLServerDriver",
+            "com.ddtek.jdbc.informix.InformixDriver",
+            //"com.mysql.jdbc.Driver",
+            "com.mysql.cj.jdbc.Driver",
+            "org.postgresql.Driver",
+            "com.sap.dbtech.jdbc.DriverSapDB",
+            "com.ncr.teradata.TeraDriver",
+            "com.ibm.as400.access.AS400JDBCDriver",
+            "sun.jdbc.odbc.JdbcOdbcDriver",
+            "net.sourceforge.jtds.jdbc.Driver",
+            "net.sourceforge.jtds.jdbc.Driver"};
+    public static final String[] DBURL    = {
+            "jdbc:oracle:thin:",
+            "jdbc:oracle:oci8:",
+            "jdbc:sybase:Tds:",
+            "jdbc:db2:",
+            "jdbc:db2://",
+            "jdbc:informix-sqli://",
+            "jdbc:sqlserver://",
+            "jdbc:datadirect:oracle://",
+            "jdbc:datadirect:sybase://",
+            "jdbc:datadirect:db2://",
+            "jdbc:datadirect:sqlserver://",
+            "jdbc:datadirect:infomix://",
+            "jdbc:mysql://",
+            "jdbc:postgresql://",
+            "jdbc:sapdb://",
+            "jdbc:teradata://", "jdbc:as400://", "jdbc:odbc:",
+            "jdbc:jtds:sqlserver://", "jdbc:jtds:sybase://"};
 
-    public static final Properties getProperties(String db)
-    {
+    public static final Properties getProperties(String db) {
         return getProperties(db, null, null);
     }
 
-    public static final Properties getProperties(String db, String user, String password)
-    {
+    public static final Properties getProperties(String db, String user, String password) {
         Properties localProperties = new Properties();
-        int i = TextUtils.indexOf(DBTYPE, db);
+        int        i               = TextUtils.indexOf(DBTYPE, db);
         if ((db == null) || (i == -1)) {
             return localProperties;
         }
@@ -65,37 +72,35 @@ public final class DBConnection
             localProperties.setProperty("password", password);
         }
         switch (i) {
-        case 6:
-            localProperties.setProperty("SelectMethod", "Cursor");
-            break;
-        case 7:
-        case 9:
-        case 11:
-            localProperties.setProperty("BatchPerformanceWorkaround", "true");
-            break;
-        case 8:
-        case 10:
-            localProperties.setProperty("SelectMethod", "Cursor");
-            localProperties.setProperty("BatchPerformanceWorkaround", "true");
-            break;
-        case 12:
-            localProperties.setProperty("useUnicode", "true");
+            case 6:
+                localProperties.setProperty("SelectMethod", "Cursor");
+                break;
+            case 7:
+            case 9:
+            case 11:
+                localProperties.setProperty("BatchPerformanceWorkaround", "true");
+                break;
+            case 8:
+            case 10:
+                localProperties.setProperty("SelectMethod", "Cursor");
+                localProperties.setProperty("BatchPerformanceWorkaround", "true");
+                break;
+            case 12:
+                localProperties.setProperty("useUnicode", "true");
         }
         return localProperties;
     }
 
-    public static final Connection getConnection(String db, String url) throws SQLException
-    {
+    public static final Connection getConnection(String db, String url) throws SQLException {
         return getConnection(db, url, null, null);
     }
 
     public static final Connection getConnection(String db,
                                                  String url,
                                                  String user,
-                                                 String password) throws SQLException
-    {
+                                                 String password) throws SQLException {
         Properties properties = getProperties(db);
-        int i = TextUtils.indexOf(DBTYPE, db);
+        int        i          = TextUtils.indexOf(DBTYPE, db);
         if (user != null) {
             properties.setProperty("user", user);
         }
@@ -109,8 +114,7 @@ public final class DBConnection
     }
 
     public static final Connection getConnection(String db, String url, Properties properties)
-    throws SQLException
-    {
+    throws SQLException {
         return getConnection(db, url, null, null, properties);
     }
 
@@ -118,8 +122,7 @@ public final class DBConnection
                                                  String url,
                                                  String user,
                                                  String password,
-                                                 Properties properties) throws SQLException
-    {
+                                                 Properties properties) throws SQLException {
         int i = TextUtils.indexOf(DBTYPE, db);
         if (user != null) {
             properties.setProperty("user", user);
@@ -133,16 +136,14 @@ public final class DBConnection
         return DriverManager.getConnection(DBURL[i] + url, properties);
     }
 
-    public static final void setEncoding(String paramString)
-    {
+    public static final void setEncoding(String paramString) {
         Properties localProperties = System.getProperties();
         localProperties.setProperty("file.encoding", paramString);
         System.setProperties(localProperties);
-        JavaVM.refresh();
+        JavaVm.refresh();
     }
 
-    public static final void setLocale(String paramString)
-    {
+    public static final void setLocale(String paramString) {
         String str = paramString;
         if (str == null) {
             return;

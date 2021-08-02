@@ -6,7 +6,7 @@ import com.asql.core.io.InputCommandReader;
 import com.asql.core.log.CommandLog;
 import com.asql.core.log.OutputCommandLog;
 import com.asql.core.util.DateOperator;
-import com.asql.core.util.JavaVM;
+import com.asql.core.util.JavaVm;
 import com.asql.core.util.TextUtils;
 import java.io.*;
 import java.sql.*;
@@ -70,7 +70,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
             this.out.println("No command to execute.");
             return true;
         }
-        switch (paramCommand.TYPE1) {
+        switch (paramCommand.type1) {
             case 0:
             case 1:
             case 2:
@@ -107,31 +107,31 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                     return true;
                 }
                 l1 = System.currentTimeMillis();
-                executeCall(this.database, new Command(paramCommand.TYPE1, paramCommand.TYPE2, skipWord(paramCommand.COMMAND, 1)), this.sysVariable, this.out);
+                executeCall(this.database, new Command(paramCommand.type1, paramCommand.type2, skipWord(paramCommand.command, 1)), this.sysVariable, this.out);
                 l2 = System.currentTimeMillis();
                 if (!this.timing)
                     break;
                 this.out.println("Execute time: " + DBOperation.getElapsed(l2 - l1));
                 break;
             case 16:
-                int i = this.cmdType.startsWith(this.cmdType.getSQLFile(), paramCommand.COMMAND);
+                int i = this.cmdType.startsWith(this.cmdType.getSQLFile(), paramCommand.command);
                 switch (i) {
                     case ASQL_SINGLE_SQLFILE_1:
-                        if (!procRun2("@@ " + paramCommand.COMMAND.trim().substring(2)))
+                        if (!procRun2("@@ " + paramCommand.command.trim().substring(2)))
                             break;
                         return false;
                     case ASQL_SINGLE_SQLFILE_2:
-                        if (!procRun2("@ " + paramCommand.COMMAND.trim().substring(1)))
+                        if (!procRun2("@ " + paramCommand.command.trim().substring(1)))
                             break;
                         return false;
                 }
                 break;
             case 6:
-                int j = getMultipleID(paramCommand.COMMAND);
+                int j = getMultipleID(paramCommand.command);
                 switch (j) {
                     case ASQL_MULTIPLE_LOB:
                         l1 = System.currentTimeMillis();
-                        procLOB(paramCommand.COMMAND);
+                        procLOB(paramCommand.command);
                         l2 = System.currentTimeMillis();
                         if (!this.timing)
                             break;
@@ -139,7 +139,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         break;
                     case ASQL_MULTIPLE_LOBEXP:
                         l1 = System.currentTimeMillis();
-                        procLOBEXP(paramCommand.COMMAND);
+                        procLOBEXP(paramCommand.command);
                         l2 = System.currentTimeMillis();
                         if (!this.timing)
                             break;
@@ -147,7 +147,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         break;
                     case ASQL_MULTIPLE_LOBIMP:
                         l1 = System.currentTimeMillis();
-                        procLOBIMP(paramCommand.COMMAND);
+                        procLOBIMP(paramCommand.command);
                         l2 = System.currentTimeMillis();
                         if (!this.timing)
                             break;
@@ -155,7 +155,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         break;
                     case ASQL_MULTIPLE_LOBLEN:
                         l1 = System.currentTimeMillis();
-                        procLOBLEN(paramCommand.COMMAND);
+                        procLOBLEN(paramCommand.command);
                         l2 = System.currentTimeMillis();
                         if (!this.timing)
                             break;
@@ -163,7 +163,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         break;
                     case ASQL_MULTIPLE_UNLOAD:
                         l1 = System.currentTimeMillis();
-                        procUnload(paramCommand.COMMAND);
+                        procUnload(paramCommand.command);
                         l2 = System.currentTimeMillis();
                         if (!this.timing)
                             break;
@@ -171,7 +171,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                         break;
                     case ASQL_MULTIPLE_LOAD:
                         l1 = System.currentTimeMillis();
-                        procLoad(paramCommand.COMMAND);
+                        procLoad(paramCommand.command);
                         l2 = System.currentTimeMillis();
                         if (!this.timing)
                             break;
@@ -179,79 +179,79 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
                 }
                 break;
             case 5:
-                int k = getSingleID(paramCommand.COMMAND);
+                int k = getSingleID(paramCommand.command);
                 switch (k) {
                     case ASQL_SINGLE_MSSQL:
-                        procConnectMSSQL(paramCommand.COMMAND);
+                        procConnectMSSQL(paramCommand.command);
                         break;
                     case ASQL_SINGLE_SYBASE:
-                        procConnectSybase(paramCommand.COMMAND);
+                        procConnectSybase(paramCommand.command);
                         break;
                     case ASQL_SINGLE_DISCONNECT:
-                        procDisconnect(paramCommand.COMMAND);
+                        procDisconnect(paramCommand.command);
                         break;
                     case ASQL_SINGLE_DEBUGLEVEL:
-                        procDebugLevel(paramCommand.COMMAND);
+                        procDebugLevel(paramCommand.command);
                         break;
                     case ASQL_SINGLE_PAGESIZE:
-                        procPageSize(paramCommand.COMMAND);
+                        procPageSize(paramCommand.command);
                         break;
                     case ASQL_SINGLE_HEADING:
-                        procHeading(paramCommand.COMMAND);
+                        procHeading(paramCommand.command);
                         break;
                     case ASQL_SINGLE_DELIMITER:
-                        procDelimiter(paramCommand.COMMAND);
+                        procDelimiter(paramCommand.command);
                         break;
                     case ASQL_SINGLE_VAR:
-                        procVariable(paramCommand.COMMAND);
+                        procVariable(paramCommand.command);
                         break;
                     case ASQL_SINGLE_UNVAR:
-                        procUnvariable(paramCommand.COMMAND);
+                        procUnvariable(paramCommand.command);
                         break;
                     case ASQL_SINGLE_PRINT:
-                        procPrint(paramCommand.COMMAND);
+                        procPrint(paramCommand.command);
                         break;
                     case ASQL_SINGLE_TIMING:
-                        procTiming(paramCommand.COMMAND);
+                        procTiming(paramCommand.command);
                         break;
                     case ASQL_SINGLE_DEFINE:
-                        procDefine(paramCommand.COMMAND);
+                        procDefine(paramCommand.command);
                         break;
                     case ASQL_SINGLE_SQLSET:
-                        procSQLSet(paramCommand.COMMAND);
+                        procSQLSet(paramCommand.command);
                         break;
                     case ASQL_SINGLE_SPOOLAPPEND:
-                        procSpoolAppend(paramCommand.COMMAND);
+                        procSpoolAppend(paramCommand.command);
                         break;
                     case ASQL_SINGLE_SPOOL:
-                        procSpool(paramCommand.COMMAND);
+                        procSpool(paramCommand.command);
                         break;
                     case ASQL_SINGLE_READ:
-                        procRead(paramCommand.COMMAND);
+                        procRead(paramCommand.command);
                         break;
                     case ASQL_SINGLE_AUTOCOMMIT:
-                        procAutocommit(paramCommand.COMMAND);
+                        procAutocommit(paramCommand.command);
                         break;
                     case ASQL_SINGLE_HELP:
-                        procHelp(paramCommand.COMMAND);
+                        procHelp(paramCommand.command);
                         break;
                     case ASQL_SINGLE_USE:
-                        procUse(paramCommand.COMMAND);
+                        procUse(paramCommand.command);
                         break;
                     case ASQL_SINGLE_HOST:
-                        procHost(paramCommand.COMMAND);
+                        procHost(paramCommand.command);
                         break;
                     case ASQL_SINGLE_SPOOLOFF:
-                        procSpoolOff(paramCommand.COMMAND);
+                        procSpoolOff(paramCommand.command);
                         break;
                     case ASQL_SINGLE_BUFFERADD:
-                        procBUFFERADD(paramCommand.COMMAND);
+                        procBUFFERADD(paramCommand.command);
                         break;
                     case ASQL_SINGLE_BUFFERLIST:
-                        procBUFFERLIST(paramCommand.COMMAND);
+                        procBUFFERLIST(paramCommand.command);
                         break;
                     case ASQL_SINGLE_BUFFERRESET:
-                        procBUFFERRESET(paramCommand.COMMAND);
+                        procBUFFERRESET(paramCommand.command);
                     case ASQL_SINGLE_AUTOTRACE:
                     case ASQL_SINGLE_AUTOT:
                 }
@@ -553,7 +553,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
         try {
             FileInputStream localFileInputStream = new FileInputStream(str2);
             Command localCommand = run(new InputCommandReader(localFileInputStream));
-            return localCommand.COMMAND != null;
+            return localCommand.command != null;
         } catch (IOException localIOException) {
             this.out.print(localIOException);
         }
@@ -771,7 +771,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
     }
 
     public void procUnknownCommand(Command paramCommand) {
-        paramCommand.TYPE1 = 1;
+        paramCommand.type1 = 1;
         execute(paramCommand);
     }
 
@@ -1071,7 +1071,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
     }
 
     private void procLOBREAD(String paramString1, String paramString2) {
-        if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 3)) {
+        if ((JavaVm.MAIN_VERSION == 1) && (JavaVm.MINOR_VERSION < 3)) {
             this.out.println("Java VM 1.3 or above required to support this feature.");
             return;
         }
@@ -1197,7 +1197,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
 
     private void procLOBWRITE(String paramString1, String paramString2) {
         long l1 = 0L;
-        if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 4)) {
+        if ((JavaVm.MAIN_VERSION == 1) && (JavaVm.MINOR_VERSION < 4)) {
             this.out.println("Java VM 1.4 or above required to support this feature.");
             return;
         }
@@ -1305,7 +1305,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
         int i = TextUtils.getWords(this.cmdType.getASQLMultiple()[1]).size();
         String str1 = skipWord(paramString, i);
         str1 = str1.trim();
-        if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 3)) {
+        if ((JavaVm.MAIN_VERSION == 1) && (JavaVm.MINOR_VERSION < 3)) {
             this.out.println("Java VM 1.3 required to support this feature.");
             return;
         }
@@ -1460,7 +1460,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
         str1 = str1.trim();
         char[] arrayOfChar = new char[8192];
         byte[] arrayOfByte = new byte[8192];
-        if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 4)) {
+        if ((JavaVm.MAIN_VERSION == 1) && (JavaVm.MINOR_VERSION < 4)) {
             this.out.println("Java VM 1.4 required to support this feature.");
             return;
         }
@@ -1595,7 +1595,7 @@ public class SybaseSQLExecutor extends DefaultSQLExecutor {
         long l = 0L;
         char[] arrayOfChar = new char[8192];
         byte[] arrayOfByte = new byte[8192];
-        if ((JavaVM.MAIN_VERSION == 1) && (JavaVM.MINOR_VERSION < 3)) {
+        if ((JavaVm.MAIN_VERSION == 1) && (JavaVm.MINOR_VERSION < 3)) {
             this.out.println("Java VM 1.3 required to support this feature.");
             return;
         }

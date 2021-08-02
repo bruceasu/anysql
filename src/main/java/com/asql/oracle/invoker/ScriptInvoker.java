@@ -42,12 +42,12 @@ public class ScriptInvoker implements ModuleInvoker {
     public ScriptInvoker(OracleSQLExecutor executor) {
         this.executor = executor;
         out = executor.getCommandLog();
-        cmdType = executor.getCommandType();
+        cmdType = executor.getCmdType();
     }
 
     @Override
     public boolean invoke(Command cmd) {
-        executor.getObjectFromCommand(cmd.COMMAND.substring(0, Math.min(100, cmd.COMMAND.length() - 1)));
+        executor.getObjectFromCommand(cmd.command.substring(0, Math.min(100, cmd.command.length() - 1)));
         out.println();
         DBRowCache rowCacheOfSessionWait = executor.getDbRowCacheOfSessionWait();
         DBRowCache rowCacheOfSessionStats = executor.getDbRowCacheOfSessionStats();

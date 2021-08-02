@@ -2,14 +2,21 @@ package com.asql.core.io;
 
 import java.io.IOException;
 
-public interface CommandReader {
-  String readline()
-      throws IOException;
+/**
+ * @author suk
+ */
+public interface CommandReader
+{
 
-  String readPassword()
-      throws Exception;
+    String readline() throws IOException;
 
-  String getWorkingDir();
+    default String readPassword() throws Exception
+    {
+        return PasswordReader.readPassword("Password: ");
+    }
 
-  void setWorkingDir(String paramString);
+
+    String getWorkingDir();
+
+    void setWorkingDir(String paramString);
 }
