@@ -17,8 +17,8 @@ public class ASQL {
 
         /*proxy*/
         /*socks5*/
-        System.getProperties().setProperty("socksProxyHost", "localhost");
-        System.getProperties().setProperty("socksProxyPort", "1080");
+       // System.getProperties().setProperty("socksProxyHost", "localhost");
+       // System.getProperties().setProperty("socksProxyPort", "1080");
         /*http*/
 //        System.getProperties().setProperty("http.proxyHost", networkBean.getAddress());
 //        System.getProperties().setProperty("http.proxyPort", networkBean.getPort());
