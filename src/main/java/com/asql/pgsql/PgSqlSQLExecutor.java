@@ -21,7 +21,6 @@ public class PgSqlSQLExecutor extends DefaultSQLExecutor {
     public Command        lastcommand     = null;
     public String         autotraceType   = "OFF";
     public String         autotraceName   = "ALL";
-    public String         pgSqlDriver     = "org.posgresql.Driver";
     public SQLStatement[] descSqls        = new SQLStatement[10];
     public SQLStatement[] traceSqls       = new SQLStatement[9];
     public Hashtable      hashtable       = new Hashtable();
@@ -131,24 +130,6 @@ public class PgSqlSQLExecutor extends DefaultSQLExecutor {
         out.println();
     }
 
-    @Override
-    public void doServerMessage() throws SQLException {
-        SQLCallable   sqlCallable = null;
-        VariableTable table       = new VariableTable();
-        table.add("P_LINE", 12);
-        table.add("P_STATUS", 4);
-        table.setValue("P_STATUS", "0");
-        sqlCallable = prepareCall(database,
-                "DBMS_OUTPUT.GET_LINE(LINE=>:P_LINE OUT,STATUS=>:P_STATUS OUT)", table);
-        while (true) {
-            sqlCallable.bind(table);
-            sqlCallable.stmt.execute();
-            sqlCallable.fetch(table);
-            if (table.getInt("P_STATUS", 1) == 1) { break; }
-            out.println(table.getString("P_LINE"));
-        }
-        sqlCallable.close();
-    }
 
     @Override
     public String getLastCommand() {
@@ -195,10 +176,10 @@ public class PgSqlSQLExecutor extends DefaultSQLExecutor {
         for (i = rowCache.getRowCount(); (i < size) && (rs.next());
                 i = rowCache.appendRow(arrayOfObject)) {
             arrayOfObject = new Object[rowCache.getColumnCount()];
-            for (int kk = 1; kk <= rowCache.getColumnCount(); kk++) {
-                System.out.println("paramDBRowCache.getColumnType(" + kk + ") = " + rowCache
-                        .getColumnType(kk));
-            }
+//            for (int kk = 1; kk <= rowCache.getColumnCount(); kk++) {
+//                System.out.println("paramDBRowCache.getColumnType(" + kk + ") = " + rowCache
+//                        .getColumnType(kk));
+//            }
             for (j = 1; j <= rowCache.getColumnCount(); j++) {
 //                System.out.println("j = " + j);
 //                System.out.println("paramResultSet = " + paramResultSet);

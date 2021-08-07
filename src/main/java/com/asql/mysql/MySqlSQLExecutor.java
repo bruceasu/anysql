@@ -1,19 +1,18 @@
 package com.asql.mysql;
 
 import static com.asql.core.CMDType.*;
-import static com.asql.mysql.MySqlCMDType.ASQL_SINGLE_SQLFILE_1;
-import static com.asql.mysql.MySqlCMDType.ASQL_SINGLE_SQLFILE_2;
 
 import com.asql.core.*;
 import com.asql.core.io.CommandReader;
 import com.asql.core.io.DefaultCommandReader;
-import com.asql.core.io.InputCommandReader;
 import com.asql.core.log.CommandLog;
 import com.asql.core.log.DefaultCommandLog;
 import com.asql.core.util.DateOperator;
-import com.asql.core.util.TextUtils;
 import com.asql.mysql.invoker.*;
-import java.io.*;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.Hashtable;
@@ -129,7 +128,7 @@ public class MySqlSQLExecutor extends DefaultSQLExecutor {
                 "yyyy-MM-dd HH:mm:ss"));
         this._stdout.println();
         this._stdout.println(" (@) Copyright Lou Fangxin(1.0.0), all rights reserved.");
-        this._stdout.println(" (@) Copyright Suk(1.0.0), all rights left.");
+        this._stdout.println(" (@) Copyright Bruce(1.0.0), all rights left.");
         this._stdout.println();
     }
 

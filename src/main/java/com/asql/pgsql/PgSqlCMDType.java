@@ -151,15 +151,7 @@ public final class PgSqlCMDType extends CMDType {
     public static final int PGSQL_BUFFER_LIST = 34;
     public static final int PGSQL_BUFFER_RESET = 35;
     public static final int PGSQL_QUERYONLY = 36;
-    public static final int PGSQL_OLHASH = 37;
-    public static final int PGSQL_OLDROP = 38;
-    public static final int PGSQL_OLSHIFT = 39;
-    public static final int PGSQL_OLSHOW = 40;
-    public static final int PGSQL_OLMOVE = 41;
-    public static final int PGSQL_OLLIST = 42;
-    public static final int PGSQL_OLSQL = 43;
-    public static final int PGSQL_OLRENAME = 44;
-    public static final int PGSQL_OL = 45;
+
     // file
     public static final int PGSQL_SQLFILE_0 = 0;
     public static final int PGSQL_SQLFILE_1 = 1;
